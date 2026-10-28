@@ -1,7 +1,7 @@
 // Byakko - Resting attack speed
 //
 // The on-kill burst is the point of the mod, but a burst off a slow baseline still feels
-// slow between kills. Byakko sits at 2.1 attacks per second; stock Mantis Blades do not.
+// slow between kills. The Byakko sits at 2.1 attacks per second; stock Mantis Blades do not.
 // This file closes that gap while the blades are equipped.
 //
 // ---------------------------------------------------------------------------
@@ -26,11 +26,16 @@ public class BYKBaselineState {
   private let m_mod: ref<gameStatModifierData>;
   private let m_appliedTarget: Float;   // the target that produced m_mod
 
+  // Is a modifier currently applied? Read by the diagnostic.
+  public func IsApplied() -> Bool {
+    return IsDefined(this.m_mod);
+  }
+
   // Bring the equipped blades up to the configured resting attack speed.
   //
-  // Safe to call repeatedly - that is how it tracks a perk, a level or a cyberware change
+  // Safe to call repeatedly, which is how it tracks a perk, a level or a cyberware change
   // that moves the underlying number. Callers must not call it while a burst is live; see
-  // the note in Evaluate.
+  // the note in BYKBaselineEvaluate.
   public func Apply(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
     let settings = BYKSettings();
     let enabled = true;
@@ -54,17 +59,18 @@ public class BYKBaselineState {
     // Take our own contribution off before reading, so what comes back is the blades
     // without us. This is the line that stops the value compounding.
     if IsDefined(this.m_mod) {
-      if EntityID.IsDefined(this.m_targetEntity) && Equals(this.m_targetEntity, entity) {
+      if BYKSameEntity(this.m_targetEntity, entity) {
         stats.RemoveModifier(sid, this.m_mod);
       }
+      // If it was on a different weapon, that weapon is gone and took the modifier with it.
       this.m_mod = null;
     }
 
     let base = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
     let delta = target - base;
 
-    // Only ever speed the blades up. If the player has built past the target - or another
-    // mod has - leave their number alone rather than dragging it back down to ours.
+    // Only ever speed the blades up. If the player has built past the target, or another mod
+    // has, leave their number alone rather than dragging it back down to ours.
     if delta <= 0.001 {
       this.m_targetEntity = entity;
       this.m_appliedTarget = target;
@@ -84,15 +90,22 @@ public class BYKBaselineState {
 
   // Remove our contribution. Follows the same rule as the burst: never touch an entity that
   // is not still there, and always drop the handle either way.
+  //
+  // Only safe while the world is stable. Across a session boundary use Forget.
   public func Clear(game: GameInstance) -> Void {
-    if IsDefined(this.m_mod) && EntityID.IsDefined(this.m_targetEntity) {
+    if IsDefined(this.m_mod) && BYKEntityAlive(game, this.m_targetEntity) {
       let stats = GameInstance.GetStatsSystem(game);
-      let ent = GameInstance.FindEntityByID(game, this.m_targetEntity);
-      let obj = ent as GameObject;
-      if IsDefined(stats) && IsDefined(obj) && obj.IsAttached() {
+      if IsDefined(stats) {
         stats.RemoveModifier(Cast<StatsObjectID>(this.m_targetEntity), this.m_mod);
       }
     }
+    this.Forget();
+  }
+
+  // Drop the handle without touching the stats system or the entity registry. For loads,
+  // respawns and teardown, where the weapon it was applied to has already been destroyed.
+  // See the longer note on BYKBurstState.Forget.
+  public func Forget() -> Void {
     this.m_mod = null;
     this.m_targetEntity = BYKNoEntity();
     this.m_appliedTarget = 0.0;
@@ -105,10 +118,7 @@ public class BYKBaselineState {
     if IsDefined(settings) && !settings.restingSpeedEnabled {
       return IsDefined(this.m_mod);
     }
-    if !EntityID.IsDefined(this.m_targetEntity) {
-      return true;
-    }
-    if !Equals(this.m_targetEntity, weapon.GetEntityID()) {
+    if !BYKSameEntity(this.m_targetEntity, weapon.GetEntityID()) {
       return true;
     }
     let target = BYKConfig.RestingAttackSpeedDefault();
@@ -119,30 +129,35 @@ public class BYKBaselineState {
   }
 }
 
-// Keep the resting baseline current. Called from the system's slow tick.
+// Keep the resting baseline current. Called from the system's slow tick, which has already
+// established that the world is stable.
 //
-// Skipped entirely while a burst is live: the burst puts a multiplier on the same stat, so
-// a read taken now would come back inflated and the computed difference would be wrong. The
+// Returns whether the blades were in hand, which is what the caller uses to decide how soon
+// to run the next tick.
+//
+// Skipped entirely while a burst is live: the burst puts a multiplier on the same stat, so a
+// read taken now would come back inflated and the computed difference would be wrong. The
 // window is seconds long and the next tick after it closes puts this right.
-public func BYKBaselineEvaluate(game: GameInstance, baseline: ref<BYKBaselineState>, burst: ref<BYKBurstState>) -> Void {
+public func BYKBaselineEvaluate(game: GameInstance, baseline: ref<BYKBaselineState>, burst: ref<BYKBurstState>) -> Bool {
   if !IsDefined(baseline) {
-    return;
+    return false;
   }
   if !BYKEnabled() {
     baseline.Clear(game);
-    return;
+    return false;
   }
-  if IsDefined(burst) && burst.IsActive() {
-    return;
-  }
-  let weapon = BYKEquippedMantis(game);
+  let weapon = BYKEquippedMantisSettled(game);
   if !IsDefined(weapon) {
-    // Blades not out. Nothing to keep current, and the modifier (if any) went with the
+    // Blades not out. Nothing to keep current, and the modifier, if any, went with the
     // weapon entity when it was put away.
     baseline.Clear(game);
-    return;
+    return false;
+  }
+  if IsDefined(burst) && burst.IsActive() {
+    return true;   // blades are in hand, just not a good moment to measure
   }
   if baseline.NeedsWork(game, weapon) {
     baseline.Apply(game, weapon);
   }
+  return true;
 }

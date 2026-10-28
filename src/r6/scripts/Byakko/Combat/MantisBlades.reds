@@ -2,7 +2,7 @@
 //
 // Mantis Blades are cyberware, not an inventory weapon, so they live under their own record
 // tree and none of the katana record names reach them. The game does however give them
-// their own item type - gamedataItemType.Cyb_MantisBlades - which is a far steadier handle
+// their own item type, gamedataItemType.Cyb_MantisBlades, which is a far steadier handle
 // than matching record-name strings: it covers all 41 Mantis Blade records (base, Chemical,
 // Electric, Thermal, MaxTac, every rarity and ++ tier) without listing any of them, and it
 // keeps working if a patch adds more.
@@ -34,6 +34,16 @@ public func BYKEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
   if !BYKWorldStable(game) {
     return null;
   }
+  return BYKEquippedMantisSettled(game);
+}
+
+// The same lookup for a caller that has already established the world is stable.
+//
+// Split out because the stability gate walks the player, the time system, two blackboards
+// and the workspot system, and a caller that just ran it has no reason to pay for it twice.
+// Anything calling this without having checked is reading equipment mid-stream, which is the
+// exact crash this module exists to avoid.
+public func BYKEquippedMantisSettled(game: GameInstance) -> wref<WeaponObject> {
   let player = GetPlayer(game);
   if !IsDefined(player) {
     return null;
@@ -70,4 +80,37 @@ public func BYKWeaponStatsId(weapon: wref<WeaponObject>) -> StatsObjectID {
 public func BYKNoEntity() -> EntityID {
   let none: EntityID;
   return none;
+}
+
+// Do these two handles refer to the same entity?
+//
+// Compared by hash rather than with Equals on the struct. The modifier bookkeeping decides
+// between refreshing a live window and tearing it down and rebuilding it on the strength of
+// this answer, so it should not rest on how the compiler chooses to compare a struct. The
+// hash is a plain Uint64 and there is nothing ambiguous about comparing two of them.
+public func BYKSameEntity(a: EntityID, b: EntityID) -> Bool {
+  if !EntityID.IsDefined(a) || !EntityID.IsDefined(b) {
+    return false;
+  }
+  return Equals(EntityID.GetHash(a), EntityID.GetHash(b));
+}
+
+// Is this entity id still a live, attached game object?
+//
+// Shared by the burst and the baseline, because both face the same question before taking a
+// modifier back off: the weapon may have been holstered, swapped or destroyed since the
+// modifier went on, and a stat write against a freed entity is the crash this guards.
+public func BYKEntityAlive(game: GameInstance, id: EntityID) -> Bool {
+  if !EntityID.IsDefined(id) {
+    return false;
+  }
+  let ent = GameInstance.FindEntityByID(game, id);
+  if !IsDefined(ent) {
+    return false;
+  }
+  let obj = ent as GameObject;
+  if !IsDefined(obj) {
+    return false;
+  }
+  return obj.IsAttached();
 }

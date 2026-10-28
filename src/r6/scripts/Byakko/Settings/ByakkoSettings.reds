@@ -100,14 +100,12 @@ public class ByakkoSettings {
   public let logLevel: EBYKLogLevel = EBYKLogLevel.Info;
 
   public func Register() -> Void {
-    ModSettings.RegisterListenerToClass(this);
-    ModSettings.RegisterListenerToModifications(this);
+    BYKModSettingsRegister(this);
     this.Push();
   }
 
   public func Unregister() -> Void {
-    ModSettings.UnregisterListenerToClass(this);
-    ModSettings.UnregisterListenerToModifications(this);
+    BYKModSettingsUnregister(this);
   }
 
   // Mod Settings calls this after any of the values above changes in the menu.
@@ -125,3 +123,51 @@ public class ByakkoSettings {
     }
   }
 }
+
+
+// ---------------------------------------------------------------------------
+// Mod Settings, made optional
+//
+// Every call into Mod Settings is isolated behind ModuleExists so the mod still compiles
+// when Mod Settings is not installed. That matters more than it sounds: an unresolved
+// reference does not just disable this mod, it fails the whole redscript compile, which
+// takes down every script mod in the game at once. A player who removes Mod Settings, or
+// updates the game before Mod Settings catches up, would find their entire mod list dead and
+// a message naming Byakko as the cause.
+//
+// Without Mod Settings the class above still exists and still holds its defaults, which are
+// the Byakko's own numbers, so the mod runs exactly as intended. The only thing missing is
+// the menu to change them.
+//
+// Codeware is a genuine hard requirement and cannot be made optional the same way: the
+// localization provider needs a module-level import, and redscript cannot guard an import or
+// name a type by its qualified path. Both were tested against the compiler rather than
+// assumed.
+
+@if(ModuleExists("ModSettingsModule"))
+func BYKModSettingsRegister(settings: ref<ByakkoSettings>) -> Void {
+  ModSettings.RegisterListenerToClass(settings);
+  ModSettings.RegisterListenerToModifications(settings);
+}
+
+@if(!ModuleExists("ModSettingsModule"))
+func BYKModSettingsRegister(settings: ref<ByakkoSettings>) -> Void {
+}
+
+@if(ModuleExists("ModSettingsModule"))
+func BYKModSettingsUnregister(settings: ref<ByakkoSettings>) -> Void {
+  ModSettings.UnregisterListenerToClass(settings);
+  ModSettings.UnregisterListenerToModifications(settings);
+}
+
+@if(!ModuleExists("ModSettingsModule"))
+func BYKModSettingsUnregister(settings: ref<ByakkoSettings>) -> Void {
+}
+
+// Reported by the diagnostic readout, so "the settings menu is empty" is answerable without
+// guessing.
+@if(ModuleExists("ModSettingsModule"))
+public func BYKModSettingsPresent() -> Bool = true
+
+@if(!ModuleExists("ModSettingsModule"))
+public func BYKModSettingsPresent() -> Bool = false

@@ -1,8 +1,8 @@
 // Byakko - Diagnostic readout (default F8)
 //
 // This exists because of the specific way mods in this area fail. Attack speed on melee has
-// three traps stacked on top of each other, and all three produce the same symptom - the
-// mod appears to do nothing - with no error anywhere:
+// three traps stacked on top of each other, and all three produce the same symptom, the mod
+// appears to do nothing, with no error anywhere:
 //
 //   1. There are two attack-speed stats. gamedataStatType.AttackSpeed is what the melee hit
 //      executor reads; AttacksPerSecond is what the inventory screen prints. Editing one and
@@ -29,6 +29,9 @@ public func BYKShowDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> Vo
 
 func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   let out = s"Byakko \(ByakkoVersion())\n";
+  if !BYKModSettingsPresent() {
+    out += "Mod Settings not installed: running on defaults, no menu.\n";
+  }
 
   if !BYKEnabled() {
     return out + "Mod is switched off in settings.";
@@ -43,7 +46,7 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   }
 
   // ---- The blades -------------------------------------------------------
-  let weapon = BYKEquippedMantis(game);
+  let weapon = BYKEquippedMantisSettled(game);
   if !IsDefined(weapon) {
     let active = GameObject.GetActiveWeapon(player);
     if IsDefined(active) {
@@ -84,13 +87,23 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   out += s"  IgnoreStamPen   \(stats.GetStatValue(sid, gamedataStatType.CanIgnoreWeaponStaminaPenaties))\n";
   out += s"  InfiniteCombo   \(stats.GetStatValue(sid, gamedataStatType.CanWeaponInfinitlyCombo))   (1 only during a burst)\n";
 
-  // ---- The window -------------------------------------------------------
+  // ---- What this mod currently has applied ------------------------------
+  //
+  // The leak test in the test plan compares the numbers above against a recorded baseline.
+  // These two lines say whether anything of ours is attached right now, which turns "the
+  // number looks high" into either "yes, a burst is live" or "no, and it should not be".
   if IsDefined(sys) {
+    let baseline = sys.GetBaseline();
+    if IsDefined(baseline) {
+      out += "\nResting lift applied: ";
+      out += baseline.IsApplied() ? "yes\n" : "no\n";
+    }
     let burst = sys.GetBurst();
     if IsDefined(burst) && burst.IsActive() {
-      out += s"\nBurst LIVE: \(burst.GetRemaining(game))s left, \(burst.GetKills()) kill(s) chained.\n";
+      out += s"Burst LIVE: \(burst.GetRemaining(game))s left, \(burst.GetKills()) kill(s) chained";
+      out += burst.HasPlayerMod() ? ", mirrored onto V.\n" : ".\n";
     } else {
-      out += "\nBurst idle. Kill something with the blades.\n";
+      out += "Burst idle. Kill something with the blades.\n";
     }
   }
 

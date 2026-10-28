@@ -1,11 +1,11 @@
 // Byakko - Tuning constants
 //
 // Anything a player is meant to change lives in Mod Settings instead (Settings/
-// ByakkoSettings.reds). What is left here is internal pacing and the safety margins,
-// kept in one place so none of them is buried as a literal at a call site.
+// ByakkoSettings.reds). What is left here is internal pacing and the safety margins, kept in
+// one place so none of them is buried as a literal at a call site.
 
 public abstract class BYKConfig {
-  // ---- Byakko's numbers -------------------------------------------------
+  // ---- The Byakko's numbers ---------------------------------------------
   // Community-reported: about +17.5% attack speed for about 10 seconds on a kill, with the
   // light-combo pause removed. These are the defaults the Mod Settings sliders start at.
   // They come from wikis, not from the game files, so they are a starting point to tune
@@ -13,7 +13,7 @@ public abstract class BYKConfig {
   public static func BurstMultDefault() -> Float = 1.175
   public static func BurstSecondsDefault() -> Float = 10.0
 
-  // Byakko's displayed attack speed. The resting target for the blades.
+  // The Byakko's displayed attack speed. The resting target for the blades.
   public static func RestingAttackSpeedDefault() -> Float = 2.1
 
   // ---- Burst tick -------------------------------------------------------
@@ -21,6 +21,20 @@ public abstract class BYKConfig {
   // so this costs nothing in normal play. Fine enough that the window ends when it says it
   // does, coarse enough not to matter.
   public static func BurstTickSeconds() -> Float = 0.25
+
+  // ---- Baseline tick ----------------------------------------------------
+  // The cadence while the blades are in hand. Fast enough that dragging a settings slider
+  // takes effect while the menu is still open.
+  public static func SlowTickSeconds() -> Float = 2.0
+
+  // The cadence once the blades have been put away for a while. Most players are not holding
+  // Mantis Blades most of the time, and while they are not there is nothing for this tick to
+  // do but notice when that changes. Backing off cuts the idle cost to a third and shrinks
+  // the window in which the tick can coincide with world streaming.
+  public static func IdleTickSeconds() -> Float = 6.0
+
+  // Consecutive blade-free ticks before backing off to the idle cadence.
+  public static func IdleTicksBeforeBackoff() -> Int32 = 3
 
   // Ticks to stay stood down after the world stops being stable. Re-equipping, a load or a
   // scene leaves the streaming system busy for a moment after it reports itself ready, and

@@ -13,7 +13,6 @@ public class ByakkoSystem extends ScriptableSystem {
   private let m_baseline: ref<BYKBaselineState>;
 
   private let m_playerAttachCbId: Uint32;
-  private let m_sessionStarted: Bool;
   private let m_callbacksRegistered: Bool;
 
   // Two independent tick chains, each with its own generation token.
@@ -27,7 +26,8 @@ public class ByakkoSystem extends ScriptableSystem {
   private let m_burstTickLive: Bool;    // a burst-expiry chain is already running
   private let m_slowTickLive: Bool;     // the baseline chain is already running
   private let m_settleTicks: Int32;     // stand-down counter after the world goes unstable
-  private let m_diagKeyDown: Bool;     // diagnostic key debounce: some setups deliver only one of press/release
+  private let m_idleTicks: Int32;       // consecutive ticks with no blades in hand
+  private let m_diagKeyDown: Bool;      // diagnostic key debounce: some setups deliver only one of press/release
 
   public static func Get(game: GameInstance) -> ref<ByakkoSystem> {
     // The systems container is null during world transitions; never dereference it then.
@@ -59,11 +59,19 @@ public class ByakkoSystem extends ScriptableSystem {
   private func RegisterPlayerAttach() -> Void {
     let ps = GameInstance.GetPlayerSystem(this.GetGameInstance());
     if IsDefined(ps) {
-      this.m_playerAttachCbId = ps.RegisterPlayerPuppetAttachedCallback(this, n"OnWTPlayerAttached");
+      this.m_playerAttachCbId = ps.RegisterPlayerPuppetAttachedCallback(this, n"OnBYKPlayerAttached");
     }
   }
 
-  private func OnWTPlayerAttached(player: ref<GameObject>) -> Void {
+  private func OnBYKPlayerAttached(player: ref<GameObject>) -> Void {
+    this.StartSession();
+  }
+
+  // A save was restored. A second chance at the session reset, in case the player-attached
+  // callback was missed: a stale handle surviving a load is the one way this mod could end up
+  // writing to a stats object that belongs to a world that no longer exists.
+  private func OnRestored(saveVersion: Int32, gameVersion: Int32) -> Void {
+    BYKLog.Verbose(n"Core", s"Restored (save \(saveVersion), game \(gameVersion)).");
     this.StartSession();
   }
 
@@ -73,20 +81,23 @@ public class ByakkoSystem extends ScriptableSystem {
     this.m_burstTickLive = false;
     this.m_slowTickLive = false;
     this.m_settleTicks = BYKConfig.SettleTicks();
+    this.m_idleTicks = 0;
 
-    // Drop any window that was open before the load. The weapon it was applied to no longer
-    // exists, so there is nothing to remove - but the handles have to go, or the next Clear
-    // would try to remove a modifier from an entity that has been freed.
+    // Drop anything held from before the load, without touching the stats system.
+    //
+    // Forget rather than Clear on purpose. The world those modifiers were applied to has
+    // already been destroyed, so there is nothing to remove, and Clear would query the
+    // entity registry to establish that - a native world query during a load, which is the
+    // precise thing the rest of this mod is built to avoid.
     if IsDefined(this.m_burst) {
-      this.m_burst.Clear(this.GetGameInstance());
+      this.m_burst.Forget();
     }
     if IsDefined(this.m_baseline) {
-      this.m_baseline.Clear(this.GetGameInstance());
+      this.m_baseline.Forget();
     }
 
     this.EnsureSettings();
     this.EnsureCallbacks();
-    this.m_sessionStarted = true;
     this.ScheduleSlowTick();
     BYKLog.Info(n"Core", "Session started.");
   }
@@ -97,13 +108,13 @@ public class ByakkoSystem extends ScriptableSystem {
       let settings = new ByakkoSettings();
       settings.Register();
       rt.SetSettings(settings);
-      BYKLog.Verbose(n"Core", "Settings registered with Mod Settings.");
+      BYKLog.Verbose(n"Core", "Settings registered.");
     }
   }
 
   // The diagnostic hotkey. Guarded and idempotent, and retried from the slow tick, so a
   // callback system that was not up yet at session start cannot leave the key silently
-  // unregistered - which looks exactly like the key doing nothing.
+  // unregistered, which looks exactly like the key doing nothing.
   private func EnsureCallbacks() -> Void {
     if this.m_callbacksRegistered {
       return;
@@ -112,15 +123,22 @@ public class ByakkoSystem extends ScriptableSystem {
     if !IsDefined(cbs) {
       return;
     }
-    cbs.RegisterCallback(n"Input/Key", this, n"OnWTKeyInput");
+    cbs.RegisterCallback(n"Input/Key", this, n"OnBYKKeyInput");
     this.m_callbacksRegistered = true;
   }
 
   private func OnDetach() -> Void {
-    // Retire the tick chains so nothing fires against a system that is going away.
+    // Retire the tick chains so nothing fires against a system that is going away, and drop
+    // the handles without touching a world that is already being torn down.
     this.m_generation += 1;
     this.m_burstTickLive = false;
     this.m_slowTickLive = false;
+    if IsDefined(this.m_burst) {
+      this.m_burst.Forget();
+    }
+    if IsDefined(this.m_baseline) {
+      this.m_baseline.Forget();
+    }
     BYKLog.Verbose(n"Core", "Detaching.");
   }
 
@@ -131,24 +149,32 @@ public class ByakkoSystem extends ScriptableSystem {
     if !IsDefined(this.m_burst) {
       return;
     }
-    let game = this.GetGameInstance();
-
-    // The death hook fires from inside the engine tearing the victim down. Reading the
-    // player's equipment is safe there, but only once the world itself is settled - during a
-    // load or a scene it is not, and a kill can land on the frame a scene starts.
-    if !BYKWorldStable(game) {
-      return;
-    }
-    let weapon = BYKEquippedMantis(game);
-    if !IsDefined(weapon) {
-      // The blades went away between the killing blow and the death. Nothing to buff.
-      return;
-    }
     let settings = BYKSettings();
     if IsDefined(settings) && !settings.burstEnabled {
       return;
     }
+    let game = this.GetGameInstance();
+
+    // The death hook fires from inside the engine tearing the victim down. Reading the
+    // player's equipment is safe there, but only once the world itself is settled: during a
+    // load or a scene it is not, and a kill can land on the frame a scene starts.
+    if !BYKWorldStable(game) {
+      return;
+    }
+    // Settled variant, because the stability gate just ran. The unchecked lookup would walk
+    // the player, the time system, two blackboards and the workspot system a second time.
+    let weapon = BYKEquippedMantisSettled(game);
+    if !IsDefined(weapon) {
+      return;   // the blades went away between the killing blow and the death
+    }
+
     this.m_burst.Arm(game, weapon);
+    if !this.m_burst.IsActive() {
+      return;   // nothing landed, so there is nothing to expire
+    }
+    // The blades are demonstrably in hand, so bring the baseline tick back to its responsive
+    // cadence even if it had backed off while they were holstered.
+    this.m_idleTicks = 0;
     this.ScheduleBurstTick();
 
     if IsDefined(settings) && settings.showBurstToast {
@@ -189,11 +215,12 @@ public class ByakkoSystem extends ScriptableSystem {
     }
   }
 
-  // ---- Slow tick --------------------------------------------------------
+  // ---- Baseline tick ----------------------------------------------------
   //
   // Keeps the resting baseline current and nothing else. Runs on a lazy cadence because the
   // things that move the underlying number - a perk, a level, new cyberware, a settings
-  // change - do not happen mid-swing.
+  // change - do not happen mid-swing. Backs off further once the blades have been away for a
+  // few ticks, since then it is only watching for them to come back.
 
   private func ScheduleSlowTick() -> Void {
     if this.m_slowTickLive {
@@ -203,11 +230,15 @@ public class ByakkoSystem extends ScriptableSystem {
     if !IsDefined(ds) {
       return;
     }
+    let delay = BYKConfig.SlowTickSeconds();
+    if this.m_idleTicks >= BYKConfig.IdleTicksBeforeBackoff() {
+      delay = BYKConfig.IdleTickSeconds();
+    }
     let cb = new BYKSlowTickCallback();
     cb.game = this.GetGameInstance();
     cb.generation = this.m_generation;
     this.m_slowTickLive = true;
-    ds.DelayCallback(cb, 2.0, false);
+    ds.DelayCallback(cb, delay, false);
   }
 
   public func OnSlowTick(generation: Int32) -> Void {
@@ -234,13 +265,20 @@ public class ByakkoSystem extends ScriptableSystem {
       return;
     }
 
-    BYKBaselineEvaluate(game, this.m_baseline, this.m_burst);
+    if BYKBaselineEvaluate(game, this.m_baseline, this.m_burst) {
+      this.m_idleTicks = 0;
+    } else {
+      // Saturate rather than counting up forever, so this cannot overflow in a long session.
+      if this.m_idleTicks < BYKConfig.IdleTicksBeforeBackoff() {
+        this.m_idleTicks += 1;
+      }
+    }
     this.ScheduleSlowTick();
   }
 
   // ---- Diagnostics ------------------------------------------------------
 
-  private cb func OnWTKeyInput(event: ref<KeyInputEvent>) -> Void {
+  private cb func OnBYKKeyInput(event: ref<KeyInputEvent>) -> Void {
     let settings = BYKSettings();
     if !IsDefined(settings) || !settings.diagnosticsEnabled {
       return;
@@ -273,6 +311,10 @@ public class ByakkoSystem extends ScriptableSystem {
 
   public func GetBurst() -> ref<BYKBurstState> {
     return this.m_burst;
+  }
+
+  public func GetBaseline() -> ref<BYKBaselineState> {
+    return this.m_baseline;
   }
 }
 

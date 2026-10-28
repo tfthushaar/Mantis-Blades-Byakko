@@ -49,7 +49,12 @@ All of it is adjustable in the settings menu, and the burst is the part worth tu
 * [redscript](https://www.nexusmods.com/cyberpunk2077/mods/1511)
 * [TweakXL](https://www.nexusmods.com/cyberpunk2077/mods/4197)
 * [Codeware](https://www.nexusmods.com/cyberpunk2077/mods/7780)
-* [Mod Settings](https://www.nexusmods.com/cyberpunk2077/mods/4885)
+
+**Optional**
+
+* [Mod Settings](https://www.nexusmods.com/cyberpunk2077/mods/4885). Without it the mod runs
+  on its defaults, which are the Byakko's own numbers, and there is simply no menu to change
+  them. Nothing breaks. If you want to tune the burst, install it.
 
 **Strongly recommended**
 
@@ -200,6 +205,12 @@ Built so it cannot corrupt a save or leave anything behind.
 * **It does not hook V's damage path.** Kill detection runs on the enemy that died rather than
   on every hit V deals.
 * **Removing the mod reverts everything**, data layer included.
+* **A missing optional dependency will not break your other mods.** This matters more than it
+  sounds. When a redscript mod references something that is not there, the whole redscript
+  compile fails and *every* script mod in your game stops working, with a message naming the
+  mod that caused it. Every call this mod makes into Mod Settings is isolated so that cannot
+  happen. Codeware is a genuine hard requirement and is checked the same way, so the four
+  combinations are verified at build time rather than hoped for.
 
 ---
 
@@ -209,8 +220,11 @@ Built so it cannot corrupt a save or leave anything behind.
 # compile-check against your install without launching the game
 ./tools/validate.ps1 -GameDir "D:\SteamLibrary\steamapps\common\Cyberpunk 2077"
 
+# check the mod still compiles with and without each optional dependency
+./tools/validate.ps1 -GameDir "D:\SteamLibrary\steamapps\common\Cyberpunk 2077" -DependencyMatrix
+
 # build a release archive (validates first)
-./tools/build.ps1 -Version 0.1.0 -GameDir "D:\SteamLibrary\steamapps\common\Cyberpunk 2077"
+./tools/build.ps1 -Version 0.2.0 -GameDir "D:\SteamLibrary\steamapps\common\Cyberpunk 2077"
 ```
 
 `validate.ps1` compiles the mod with the game's own `scc.exe` against a private copy of the
