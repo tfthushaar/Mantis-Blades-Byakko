@@ -13,10 +13,13 @@ restarting on every further kill.
 Everything is adjustable from the settings menu, and the defaults are the Byakko's own numbers,
 so nothing needs configuring.
 
-**No cap fix mod needed.** The vanilla 200% melee attack speed ceiling was expected to be the
-blocking problem for this kind of mod and turned out not to be, because most builds have
-headroom under it and because the combo-pause half of the effect never touches the attack speed
-stat at all. If your build is at the ceiling, F8 says so.
+**On the 200% melee attack speed cap.** Vanilla clamps melee attack speed at 200%, and a built
+character can already be at that ceiling, where the speed half of the burst has nowhere to go.
+The clamp is one number in the game's data, `BaseStats.AttackSpeed.max`, so either
+[Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) or a one-line
+tweak of your own raises it. Only the speed half is affected: the combo-pause removal works
+through the animation state machine and never touches that stat, and the reach, leap, bleed,
+armour penetration and stamina flag are unaffected. F8 tells you whether you are over the cap.
 
 Press **F8** with the blades equipped for a readout of what the game actually reports: both
 attack speed stats, whether each data-layer change landed, whether you are over the cap, and

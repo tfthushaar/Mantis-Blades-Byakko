@@ -1,4 +1,12 @@
-[size=5]Mantis Blades that feel like the Byakko[/size]
+Mod page copy for Nexus, split into the fields Nexus asks for. BBCode, which is what the
+Nexus editor takes. Paste each block into the matching field.
+
+The one-line summary that goes under the title is in nexus-summary.txt.
+
+
+================================================================================
+DESCRIPTION
+================================================================================
 
 The Byakko is Wakako Okada's katana, and it is the best-feeling melee weapon in the game. What makes it feel that way is its loop. You kill someone and the weapon pays you back straight away: a burst of speed, and the stutter between light attacks disappears. You chain into the next target and keep it going.
 
@@ -6,58 +14,96 @@ Mantis Blades are the most cyberpunk weapon in the game and they feel heavy and 
 
 This mod gives them that loop.
 
-[line]
+Copying the Byakko's stats onto the blades is not enough to get there, because the part that matters is not on the weapon at all. Its actual data is +1 metre of reach, a leap and some bleed, and none of that is what you feel. The on-kill effect lives in the gameplay layer, so it has to be built rather than copied. That is what this mod is.
 
-[size=4]What it does[/size]
+[b]Press F8 with the blades equipped[/b] and the mod prints what the game actually reports: both attack speed stats, whether each change landed, whether you are over the vanilla melee speed cap, and whether a burst is live. If something looks wrong, that readout answers it before you have to ask.
 
-[b]Always, while the blades are equipped[/b]
+[b]Nothing is written to your save.[/b] Everything the mod does is a stat modifier on a weapon that only exists while the blades are drawn. Uninstalling is deleting two folders, and your character is exactly as it was.
+
+[size=3]A note on the 200% melee cap[/size]
+
+Vanilla clamps melee attack speed at 200%. Bonuses past that ceiling still show on your perks, cyberware and weapon stats and do nothing at all, and a built Reflexes character can already be at it. Only the speed half of the burst is affected by this. The combo-pause removal works through the animation state machine and never touches the attack speed stat, and the reach, leap, bleed, armour penetration and stamina flag are unaffected.
+
+The clamp is one number in the game's data rather than something baked into the engine, so it is easy to raise. Either install [url=https://www.nexusmods.com/cyberpunk2077/mods/34588]Melee Attack Speed Cap Fix[/url], or put this single line in any .yaml file under r6/tweaks/:
+
+[code]BaseStats.AttackSpeed.max: 99.0[/code]
+
+This mod does not change that number itself, because it is a global clamp on every melee weapon in the game rather than something that can be raised for Mantis Blades alone, and quietly altering a game-wide value is how mods start fighting each other. Press F8 to see whether you are over the cap.
+
+
+================================================================================
+INSTALLATION INSTRUCTIONS
+================================================================================
+
+[b]With a mod manager[/b]
+Install the archive as normal.
+
+[b]By hand[/b]
+Extract the archive into your Cyberpunk 2077 folder, the one containing bin, r6 and engine. You should end up with:
+
+[code]Cyberpunk 2077/
+  r6/
+    scripts/Byakko/...
+    tweaks/Byakko/...[/code]
+
+[b]Uninstalling[/b]
+Delete those two Byakko folders. Nothing is written into your save, so there is no cleanup step and no safe-uninstall procedure to follow.
+
+[b]Updating[/b]
+Replace the two folders. No save migration, no new game needed.
+
+[b]If something seems wrong[/b]
+Equip the Mantis Blades and press F8. Include that readout in any bug report, along with your r6/logs and red4ext/logs if the game failed to start.
+
+
+================================================================================
+MAIN FEATURES
+================================================================================
+
+[b]While the Mantis Blades are equipped[/b]
 [list]
-[*]+1 metre reach
-[*]A leap at enemies, including in mid-air
-[*]The Byakko's bleed application rate
-[*]+25% armour penetration
-[*]Attack speed no longer sags as stamina drains
-[*]Resting attack speed brought up to 2.1, the Byakko's number
+[*][b]+1 metre reach.[/b] From the Byakko's own data.
+[*][b]A leap at enemies[/b], including in mid-air.
+[*][b]The Byakko's bleed application rate.[/b]
+[*][b]+25% armour penetration.[/b]
+[*][b]Attack speed no longer sags as stamina drains.[/b] This is Black Unicorn's one flag, and it changes how the blades feel under pressure more than the number suggests.
+[*][b]Resting attack speed brought up to 2.1[/b], the Byakko's number, so the burst starts from a katana-like baseline instead of a slow one. It only ever speeds the blades up: if your build is already faster, nothing is applied.
 [/list]
 
 [b]On a kill with the blades[/b]
 [list]
-[*]A burst of attack speed, +17.5% by default, for 10 seconds
-[*]The pause between light attack combos is removed for that window
-[*]Killing again inside the window starts it over, so a good fight never drops out of it
+[*][b]A burst of attack speed[/b], +17.5% by default, for 10 seconds.
+[*][b]The pause between light attack combos is removed[/b] for that window. This is the half most people notice, and it works regardless of the melee speed cap.
+[*][b]Killing again inside the window starts it over[/b], so a good fight never drops out of it.
 [/list]
 
-All of it is adjustable in the settings menu, and the defaults are the Byakko's own numbers, so you do not have to configure anything.
-
-[line]
-
-[size=4]You do not need a cap fix mod[/size]
-
-Every other melee attack speed mod warns you about the vanilla 200% melee attack speed ceiling, so this is worth explaining.
-
-The ceiling is real. Bonuses past it still show up on your perks, cyberware and weapon stats and do nothing at all. It does not bite here for two reasons. Most builds have headroom under it, so the burst has somewhere to go. And the half of the effect you feel most is the combo-pause removal, which works through the animation state machine and never goes near the attack speed stat, so no ceiling applies to it.
-
-If your build genuinely is at the ceiling, the speed half of the burst is the only part that loses anything, and [url=https://www.nexusmods.com/cyberpunk2077/mods/34588]Melee Attack Speed Cap Fix[/url] resolves it. Press F8 and the mod will tell you whether that is you.
-
-[line]
-
-[size=4]Diagnostics[/size]
-
-Equip the Mantis Blades and press [b]F8[/b] (rebindable). The mod prints what the game actually reports, on screen and into your logs:
-
+[b]Diagnostics[/b]
 [list]
-[*]Both attack speed stats, the one the swing animation reads and the one the inventory screen shows. They are separate fields.
-[*]Whether each data-layer change landed. A line reading 0 means another Mantis Blade mod replaced the same data.
-[*]Whether you are over the vanilla melee cap.
-[*]Whether a burst is live, how long it has left, and how many kills you have chained into it.
+[*][b]F8 readout[/b] (rebindable) showing both attack speed stats, whether each data change landed, whether you are over the vanilla melee cap, and whether a burst is live with how long it has left.
 [/list]
 
-If you are reporting a problem, press F8 and include that readout. It answers most questions before they need asking.
+[b]Everything is tunable in game[/b]
+[list]
+[*]Burst strength, duration, whether it removes the combo pause, and whether it applies to V as well as the blades.
+[*]Resting attack speed target, or turn the resting lift off entirely.
+[*]Defaults are the Byakko's own numbers, so nothing needs configuring.
+[/list]
 
-[line]
+[b]Built not to cause problems[/b]
+[list]
+[*][b]Nothing is persisted.[/b] No save data, no schema, no migration.
+[*][b]It cannot stack.[/b] One modifier per stat at a time, tracked by handle. Killing again extends the window instead of adding a second buff.
+[*][b]It stands down during loads, fast travel, time skips, the ripperdoc chair, menus and cutscenes[/b], because that is when the game is rebuilding the world and reading equipment mid-rebuild is how a mod crashes the game.
+[*][b]It does not hook V's damage path.[/b] Kill detection runs on the enemy that died rather than on every hit you deal.
+[*][b]It adds to the Mantis Blade records instead of overwriting them[/b], so another Mantis Blade mod's changes survive alongside it.
+[/list]
 
-[size=4]Requirements[/size]
 
+================================================================================
+REQUIREMENTS
+================================================================================
+
+[b]Required[/b]
 [list]
 [*][url=https://www.nexusmods.com/cyberpunk2077/mods/2380]RED4ext[/url]
 [*][url=https://www.nexusmods.com/cyberpunk2077/mods/1511]redscript[/url]
@@ -65,21 +111,15 @@ If you are reporting a problem, press F8 and include that readout. It answers mo
 [*][url=https://www.nexusmods.com/cyberpunk2077/mods/7780]Codeware[/url]
 [/list]
 
-[b]Optional:[/b] [url=https://www.nexusmods.com/cyberpunk2077/mods/4885]Mod Settings[/url]. Without it the mod runs on its defaults, which are the Byakko's own numbers, and there is simply no menu to change them. Nothing breaks.
+[b]Optional[/b]
+[list]
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/4885]Mod Settings[/url], for the settings menu. Without it the mod runs on its defaults, which are the Byakko's own numbers, and there is simply no menu to change them. Nothing breaks.
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/34588]Melee Attack Speed Cap Fix[/url], if F8 shows you are over the vanilla 200% melee speed cap. See the note at the end of the description for the one-line alternative.
+[/list]
 
-[line]
+[b]Compatibility[/b]
 
-[size=4]Installing and uninstalling[/size]
-
-Install with Vortex as normal, or extract into your Cyberpunk 2077 folder, the one containing bin, r6 and engine. You should end up with [b]r6/scripts/Byakko[/b] and [b]r6/tweaks/Byakko[/b].
-
-To uninstall, delete those two folders. Nothing is written into your save, so there is nothing to clean up and no safe-uninstall procedure to follow. Your character is exactly as it was.
-
-[line]
-
-[size=4]Compatibility[/size]
-
-This mod adds to the Mantis Blade records instead of overwriting them, so another Mantis Blade mod's changes survive alongside it. Where you both change the same stat, both apply. If two mods set the same stat to different absolute values, whichever loads last wins, and F8 will show you if this mod's data layer is being overridden.
+This mod appends to each Mantis Blade record rather than replacing it, so another Mantis Blade mod's own changes survive alongside it and both apply. If two mods set the same stat to different absolute values, whichever loads last wins, and F8 will show you if this mod's data layer is being overridden.
 
 Mods covering similar ground, worth a look:
 [list]
@@ -88,28 +128,30 @@ Mods covering similar ground, worth a look:
 [*][url=https://www.nexusmods.com/cyberpunk2077/mods/32588]Iconic Mantis Blade[/url]
 [/list]
 
-[line]
+[b]Known limits[/b]
 
-[size=4]Safety[/size]
+[b]Base damage is left alone.[/b] The Byakko's sheet lists 148, but Mantis Blades scale their damage with your level and tier. Pinning them to the katana's number would be a straight downgrade on a Tier 5++ character.
 
-Built so it cannot corrupt a save or leave anything behind.
+[b]Arm cyberware has a history of ignoring attack speed.[/b] There is a long-standing vanilla bug where arm cyberware and base fists do not scale with attack speed, and how much of it is live varies by patch. The mod is built so that does not matter: the combo-pause removal changes the feel through the animation state machine rather than the attack speed stat, and the speed multiplier is applied to both the blades and V because which of the two the animation reads has changed between patches.
+
+
+================================================================================
+SHOUT OUTS
+================================================================================
+
+This mod is a few hundred lines of script sitting on top of other people's much larger work. None of it would exist without:
 
 [list]
-[*][b]It persists nothing.[/b] No save data, no schema, no migration. Everything it does is a stat modifier on a weapon that only exists while the blades are drawn.
-[*][b]It cannot stack.[/b] The burst keeps one modifier per stat at a time, tracked by handle. Killing again pushes the window's deadline out instead of adding a second buff.
-[*][b]It stands down during loads, fast travel, time skips, the ripperdoc chair, menus and cutscenes.[/b] That is when the game is rebuilding the world, and reading equipment mid-rebuild is how a mod crashes the game.
-[*][b]It does not hook V's damage path.[/b] Kill detection runs on the enemy that died rather than on every hit V deals.
-[*][b]A missing optional dependency will not break your other mods.[/b] When a redscript mod references something that is not there, the whole redscript compile fails and every script mod in your game stops working. Every call this mod makes into Mod Settings is isolated so that cannot happen, and all four dependency combinations are checked at build time.
+[*][b]Octavian Dima (WopsS)[/b] for [url=https://www.nexusmods.com/cyberpunk2077/mods/2380]RED4ext[/url].
+[*][b]jac3km4[/b] for [url=https://www.nexusmods.com/cyberpunk2077/mods/1511]redscript[/url]. Its compiler is also what made this mod possible to build without a launch cycle for every change: the whole thing is checked against the game's own script cache in a sandbox before the game is ever started.
+[*][b]Pavel Siberx (psiberx)[/b] for [url=https://www.nexusmods.com/cyberpunk2077/mods/4197]TweakXL[/url] and [url=https://www.nexusmods.com/cyberpunk2077/mods/7780]Codeware[/url], which between them cover the whole data layer and the settings and localization plumbing.
+[*][b]Jack Humbert[/b] for [url=https://www.nexusmods.com/cyberpunk2077/mods/4885]Mod Settings[/url].
+[*]The author of [url=https://www.nexusmods.com/cyberpunk2077/mods/34588]Melee Attack Speed Cap Fix[/url], for finding that the melee speed ceiling is a single data value and saying so publicly. That is the reason the cap note in this description can tell you exactly which number to change.
+[*][url=https://www.nexusmods.com/cyberpunk2077/mods/28451]Fenix Mantis Blades - Overhaul[/url] and [url=https://www.nexusmods.com/cyberpunk2077/mods/14130]Bug Fix - Base Fists and Arm Cyberware Attack Speed Fix[/url], for documenting the arm cyberware attack speed bug. Knowing about it in advance is why this mod does not depend on attack speed alone to carry the feel.
+[*]The Cyberpunk 2077 modding community and its documentation, for the iconic weapon effect tables that made it possible to see what the Byakko actually does before writing a line.
+[*][b]CD Projekt Red[/b], for Night City, and for Wakako's katana.
 [/list]
 
 [line]
 
-[size=4]Known limits[/size]
-
-[b]Base damage is left alone.[/b] The Byakko's sheet lists 148, but Mantis Blades scale their damage with your level and tier. Pinning them to the katana's number would be a straight downgrade on a Tier 5++ character.
-
-[b]Arm cyberware has a history of ignoring attack speed.[/b] There is a long-standing vanilla bug where arm cyberware and base fists do not scale with attack speed, and how much of it is live varies by patch. This mod is built so that does not matter: the combo-pause removal changes the feel through the animation state machine rather than the attack speed stat, and the speed multiplier is applied to both the blades and V because which one the animation reads has changed between patches.
-
-[line]
-
-Source and issues: [url=https://github.com/tfthushaar/Mantis-Blades-Byakko]github.com/tfthushaar/Mantis-Blades-Byakko[/url]
+Source, issues and the full changelog: [url=https://github.com/tfthushaar/Mantis-Blades-Byakko]github.com/tfthushaar/Mantis-Blades-Byakko[/url]

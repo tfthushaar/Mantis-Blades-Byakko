@@ -56,10 +56,10 @@ All of it is adjustable in the settings menu, and the burst is the part worth tu
   on its defaults, which are the Byakko's own numbers, and there is simply no menu to change
   them. Nothing breaks. If you want to tune the burst, install it.
 
-* [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588). Not
-  needed. This mod works without it, and was tested that way. It only matters if your build
-  is already pushing against the vanilla melee speed ceiling, and F8 will tell you if it is.
-  See [The 200% cap](#the-200-cap).
+* [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588), or the
+  one-line tweak in [The 200% cap](#the-200-cap) below. Vanilla clamps melee attack speed at
+  200% and a built character can already be at that ceiling, in which case the speed half of
+  the burst has nowhere to go. Press F8 and the mod will tell you whether that is you.
 
 **Install**
 
@@ -82,21 +82,27 @@ clean up and no safe-uninstall procedure to follow. Your character is exactly as
 
 ## The 200% cap
 
-**You do not need a cap fix mod.** This was the one thing expected to be a problem, and it is
-not. Worth explaining, because every other melee attack speed mod warns you about it.
+Vanilla Cyberpunk clamps melee attack speed at 200%. Bonuses past that ceiling still show up
+on your perks, your cyberware and your weapon stats, and they do nothing at all. A built
+Reflexes character can be sitting at or near it before installing anything.
 
-Vanilla Cyberpunk caps melee attack speed at 200%. Bonuses past that cap still show up on your
-perks, your cyberware and your weapon stats, and they do nothing at all. A heavily built
-Reflexes character can be sitting at or near that ceiling before installing anything.
+The good news is that it is one number in the game's data, not something baked into the engine.
+`BaseStats.AttackSpeed.max` is 2.0 in vanilla. Raising it is a single line of TweakXL, which is
+all that [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) does.
+If you would rather not add another mod, drop this into any `.yaml` under `r6/tweaks/`:
 
-Two reasons it does not bite here. Most builds have headroom under the cap, so the burst has
-somewhere to go. And more importantly, the half of the effect you feel most is the combo-pause
-removal, which works through the animation state machine and never goes anywhere near the
-attack speed stat, so no ceiling applies to it at all.
+```yaml
+BaseStats.AttackSpeed.max: 99.0
+```
 
-If your build genuinely is at the ceiling, the speed half of the burst is the only part that
-loses anything, and
-[Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) resolves it.
+This mod does not change that number itself, because it is a global clamp on every melee weapon
+in the game rather than something that can be raised for Mantis Blades alone, and quietly
+altering a game-wide value is how mods start fighting each other.
+
+**How much this affects you depends on your build.** Only the speed half of the burst is
+clamped. The combo-pause removal, which is the half most people notice, works through the
+animation state machine and never touches the attack speed stat, so no ceiling applies to it.
+The reach, leap, bleed, armour penetration and stamina flag are all unaffected too.
 
 **Press F8 with the blades equipped and the mod will tell you whether you are over the cap**,
 rather than leaving you to guess. See [Diagnostics](#diagnostics).

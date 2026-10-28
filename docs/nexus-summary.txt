@@ -1,3 +1,3 @@
-Nexus "summary" field (the one-line blurb under the title). 299 characters.
+Nexus "summary" field (the one-line blurb under the title). 301 characters.
 
-Mantis Blades that feel like the Byakko. Kill with the blades and get ten seconds of extra attack speed with the light combo pause gone, refreshed by every further kill. Also +1m reach, a leap at enemies, bleed, +25% armour pen and no stamina sag. No cap fix needed. Nothing is written to your save.
+Mantis Blades that feel like the Byakko. Kill with the blades and get ten seconds of extra attack speed with the light combo pause gone, refreshed by every further kill. Also +1m reach, a leap at enemies, bleed, +25% armour pen and no stamina sag. Tunable in game, and nothing is written to your save.
