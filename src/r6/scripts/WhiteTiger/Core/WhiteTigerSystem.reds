@@ -27,6 +27,7 @@ public class WhiteTigerSystem extends ScriptableSystem {
   private let m_burstTickLive: Bool;    // a burst-expiry chain is already running
   private let m_slowTickLive: Bool;     // the baseline chain is already running
   private let m_settleTicks: Int32;     // stand-down counter after the world goes unstable
+  private let m_diagKeyDown: Bool;     // diagnostic key debounce: some setups deliver only one of press/release
 
   public static func Get(game: GameInstance) -> ref<WhiteTigerSystem> {
     // The systems container is null during world transitions; never dereference it then.
@@ -45,6 +46,12 @@ public class WhiteTigerSystem extends ScriptableSystem {
     this.m_burst = new WTBurstState();
     this.m_baseline = new WTBaselineState();
     this.RegisterPlayerAttach();
+    // Register the diagnostic key and start a tick here as well as at session start. If the
+    // player-attached callback is ever missed, this chain is the one that keeps retrying the
+    // registration, so the key cannot end up silently unregistered. Session start bumps the
+    // generation, which retires this chain in favour of its own.
+    this.EnsureCallbacks();
+    this.ScheduleSlowTick();
   }
 
   // The player-puppet-attached callback is the reliable "session is ready" signal. It fires
@@ -56,9 +63,8 @@ public class WhiteTigerSystem extends ScriptableSystem {
     }
   }
 
-  private cb func OnWTPlayerAttached(player: ref<GameObject>) -> Bool {
+  private func OnWTPlayerAttached(player: ref<GameObject>) -> Void {
     this.StartSession();
-    return false;
   }
 
   private func StartSession() -> Void {
@@ -234,19 +240,35 @@ public class WhiteTigerSystem extends ScriptableSystem {
 
   // ---- Diagnostics ------------------------------------------------------
 
-  private cb func OnWTKeyInput(evt: ref<KeyInputEvent>) -> Bool {
-    if NotEquals(evt.GetAction(), EInputAction.IACT_Press) {
-      return false;
-    }
+  private cb func OnWTKeyInput(event: ref<KeyInputEvent>) -> Void {
     let settings = WTSettings();
     if !IsDefined(settings) || !settings.diagnosticsEnabled {
-      return false;
+      return;
     }
-    if NotEquals(evt.GetKey(), settings.diagnosticKey) {
-      return false;
+    if !Equals(event.GetKey(), settings.diagnosticKey) {
+      return;
+    }
+    // Act on the press, and fall back to the release for setups that never deliver a press
+    // for this key, which is one reported way a mod hotkey appears to do nothing at all. The
+    // down-flag keeps a normal press-and-release pair from printing the readout twice, and
+    // stops a held key from repeating it.
+    let action = event.GetAction();
+    if Equals(action, EInputAction.IACT_Press) {
+      if this.m_diagKeyDown {
+        return;
+      }
+      this.m_diagKeyDown = true;
+    } else {
+      if !Equals(action, EInputAction.IACT_Release) {
+        return;   // repeats and anything else
+      }
+      let pressWasSeen = this.m_diagKeyDown;
+      this.m_diagKeyDown = false;
+      if pressWasSeen {
+        return;   // already handled on the press
+      }
     }
     WTShowDiagnostics(this.GetGameInstance(), this);
-    return false;
   }
 
   public func GetBurst() -> ref<WTBurstState> {

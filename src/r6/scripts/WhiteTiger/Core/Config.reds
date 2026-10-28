@@ -33,6 +33,7 @@ public abstract class WTConfig {
   // into a state the game was never built to play.
   public static func MaxRestingAttackSpeed() -> Float = 6.0
   public static func MaxBurstMult() -> Float = 3.0
+  public static func MaxBurstSeconds() -> Float = 60.0
 
   // The vanilla melee attack speed ceiling. Nothing here enforces it - the game does - but
   // the diagnostic readout compares against it to tell the player whether their bonuses are

@@ -71,7 +71,10 @@ public class WTBurstState {
     let killCombo = true;
     let buffPlayer = true;
     if IsDefined(settings) {
-      seconds = settings.burstSeconds;
+      // Both clamped rather than trusted. The sliders are bounded, but the values come back
+      // through a settings file on disk that can be hand-edited, and a negative duration
+      // would arm a window whose deadline is already in the past.
+      seconds = ClampF(settings.burstSeconds, 0.5, WTConfig.MaxBurstSeconds());
       mult = ClampF(settings.burstMult, 1.0, WTConfig.MaxBurstMult());
       killCombo = settings.burstRemovesComboPause;
       buffPlayer = settings.burstAlsoBuffsPlayer;

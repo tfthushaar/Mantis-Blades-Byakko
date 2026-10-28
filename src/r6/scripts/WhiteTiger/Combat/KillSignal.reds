@@ -56,13 +56,25 @@ func WTNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Voi
   // The weapon that dealt it, straight off the attack. More reliable than asking what V is
   // holding now, which can already have changed by the time the victim dies.
   let weapon = evt.attackData.GetWeapon() as WeaponObject;
-  if !IsDefined(weapon) {
+  if IsDefined(weapon) {
+    if WTIsMantisWeapon(weapon) {
+      // Sticky on purpose. A bleed tick started by the blades lands as a later hit with no
+      // weapon attached to it, so the kill still has to count as a blade kill when the enemy
+      // finally drops. That is why this is a flag rather than a per-hit decision.
+      puppet.wtHitByMantis = true;
+    }
     return;
   }
-  if WTIsMantisWeapon(weapon) {
-    // Sticky on purpose. A bleed tick started by the blades lands as a later hit with no
-    // weapon attached to it, so the kill still has to count as a blade kill when the enemy
-    // finally drops - which is the whole reason this is a flag and not a per-hit decision.
+
+  // No weapon on the attack data. Arm cyberware does not always carry one, so falling back
+  // to what V is holding is the difference between the burst working and the burst never
+  // arming at all. Narrowed to melee attacks so a grenade or a quickhack thrown while the
+  // blades happen to be drawn cannot be mistaken for a blade kill.
+  if !Equals(evt.attackData.GetAttackType(), gamedataAttackType.Melee) {
+    return;
+  }
+  let held = GameObject.GetActiveWeapon(instigator);
+  if IsDefined(held) && WTIsMantisWeapon(held) {
     puppet.wtHitByMantis = true;
   }
 }
