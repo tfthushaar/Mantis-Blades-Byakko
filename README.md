@@ -56,11 +56,10 @@ All of it is adjustable in the settings menu, and the burst is the part worth tu
   on its defaults, which are the Byakko's own numbers, and there is simply no menu to change
   them. Nothing breaks. If you want to tune the burst, install it.
 
-**Strongly recommended**
-
-* [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588). Please
-  read [The 200% cap](#the-200-cap) below. Without it this mod may do nothing at all for you,
-  and that would not be a bug in this mod.
+* [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588). Not
+  needed. This mod works without it, and was tested that way. It only matters if your build
+  is already pushing against the vanilla melee speed ceiling, and F8 will tell you if it is.
+  See [The 200% cap](#the-200-cap).
 
 **Install**
 
@@ -83,23 +82,24 @@ clean up and no safe-uninstall procedure to follow. Your character is exactly as
 
 ## The 200% cap
 
-This is the most important thing to know about this mod, and about every melee attack speed
-mod.
+**You do not need a cap fix mod.** This was the one thing expected to be a problem, and it is
+not. Worth explaining, because every other melee attack speed mod warns you about it.
 
-**Vanilla Cyberpunk caps melee attack speed at 200%.** Bonuses past that cap still show up on
-your perks, your cyberware and your weapon stats, and they do absolutely nothing. A built
-Reflexes character can already be sitting at or near the cap before installing anything.
+Vanilla Cyberpunk caps melee attack speed at 200%. Bonuses past that cap still show up on your
+perks, your cyberware and your weapon stats, and they do nothing at all. A heavily built
+Reflexes character can be sitting at or near that ceiling before installing anything.
 
-So this mod can work perfectly on a fresh save and look completely dead on your real one. If
-that happens you are not misreading it and nothing is broken. You are over the cap and the
-game is throwing the extra away.
+Two reasons it does not bite here. Most builds have headroom under the cap, so the burst has
+somewhere to go. And more importantly, the half of the effect you feel most is the combo-pause
+removal, which works through the animation state machine and never goes anywhere near the
+attack speed stat, so no ceiling applies to it at all.
 
-[Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) removes the
-cap. This mod does not require it to install, and the reach, leap, bleed, armour penetration
-and combo-pause removal all work without it. The speed half needs headroom to live in.
+If your build genuinely is at the ceiling, the speed half of the burst is the only part that
+loses anything, and
+[Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) resolves it.
 
-**Press F8 with the blades equipped and the mod will tell you whether this is happening to
-you.** See [Diagnostics](#diagnostics).
+**Press F8 with the blades equipped and the mod will tell you whether you are over the cap**,
+rather than leaving you to guess. See [Diagnostics](#diagnostics).
 
 ---
 
@@ -151,17 +151,18 @@ both the blades and V so it works either way. Turn it off if it fights with anot
 
 ## Known issues and honest limits
 
-**Mantis Blades may not respond to attack speed at all.** There is a long-standing vanilla bug
-where arm cyberware and base fists do not scale with attack speed. It is the reason
+**Arm cyberware has a history of ignoring attack speed.** There is a long-standing vanilla bug
+where arm cyberware and base fists do not scale with attack speed, and it is the reason
 [Fenix Mantis Blades Overhaul](https://www.nexusmods.com/cyberpunk2077/mods/28451) and
 [Base Fists and Arm Cyberware Attack Speed Fix](https://www.nexusmods.com/cyberpunk2077/mods/14130)
-exist. Whether it is still live on your patch is something only testing on your install can
-answer, and F8 is how you check.
+exist. How much of it is still live varies by patch.
 
-That is why the combo-pause removal is on by default and matters so much. It changes the feel
-through the animation state machine instead of the attack speed stat, so it keeps working even
-where the speed number is being ignored. If the mod feels good to you but the speed readout
-never seems to matter, that is what is going on.
+This mod is built so that does not matter. The combo-pause removal changes the feel through the
+animation state machine rather than the attack speed stat, so it works regardless, and it is
+the half you notice most. The speed multiplier is applied to both the blades and V, because
+which of the two the melee animation reads for cyberware has changed between patches. If the
+mod feels good but the speed numbers never seem to move much, that is what is going on, and
+nothing is broken.
 
 **Base damage is left alone.** The Byakko's sheet lists 148, but Mantis Blades scale their
 damage with your level and tier. Pinning them to the katana's number would be a straight
