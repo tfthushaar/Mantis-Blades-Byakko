@@ -1,15 +1,15 @@
-// White Tiger - Runtime service (session-only flags)
+// Byakko - Runtime service (session-only flags)
 //
 // Codeware ScriptableService. Holds state that must be reachable without a GameInstance,
-// so low-level helpers such as WTLog can read it. It stores nothing in saves, and it holds
+// so low-level helpers such as BYKLog can read it. It stores nothing in saves, and it holds
 // no references to game objects (Codeware guidance).
 
-public class WhiteTigerRuntime extends ScriptableService {
+public class ByakkoRuntime extends ScriptableService {
   private let m_enabled: Bool = true;
-  private let m_logLevel: Int32 = 1;   // WTLogLevelInfo
-  private let m_settings: ref<WhiteTigerSettings>;
+  private let m_logLevel: Int32 = 1;   // BYKLogLevelInfo
+  private let m_settings: ref<ByakkoSettings>;
 
-  public static func Get() -> ref<WhiteTigerRuntime> {
+  public static func Get() -> ref<ByakkoRuntime> {
     // The service container is null during world transitions (load, fast travel, Skip Time,
     // braindance entry). Calling GetService on a null container reads a null context and
     // crashes, so bail out and let callers treat the runtime as not-yet-available.
@@ -17,14 +17,14 @@ public class WhiteTigerRuntime extends ScriptableService {
     if !IsDefined(container) {
       return null;
     }
-    return container.GetService(n"WhiteTigerRuntime") as WhiteTigerRuntime;
+    return container.GetService(n"ByakkoRuntime") as ByakkoRuntime;
   }
 
-  public func GetSettings() -> ref<WhiteTigerSettings> {
+  public func GetSettings() -> ref<ByakkoSettings> {
     return this.m_settings;
   }
 
-  public func SetSettings(settings: ref<WhiteTigerSettings>) -> Void {
+  public func SetSettings(settings: ref<ByakkoSettings>) -> Void {
     this.m_settings = settings;
   }
 
@@ -51,8 +51,8 @@ public class WhiteTigerRuntime extends ScriptableService {
 
 // Convenience: the live settings, or null if Mod Settings has not registered yet. Callers
 // must handle null - during very early init there is genuinely nothing to read.
-public func WTSettings() -> ref<WhiteTigerSettings> {
-  let rt = WhiteTigerRuntime.Get();
+public func BYKSettings() -> ref<ByakkoSettings> {
+  let rt = ByakkoRuntime.Get();
   if IsDefined(rt) && rt.HasSettings() {
     return rt.GetSettings();
   }
@@ -61,8 +61,8 @@ public func WTSettings() -> ref<WhiteTigerSettings> {
 
 // Is the mod switched on? Treated as on when the runtime is not up yet, because the only
 // thing that reads this before then is logging.
-public func WTEnabled() -> Bool {
-  let rt = WhiteTigerRuntime.Get();
+public func BYKEnabled() -> Bool {
+  let rt = ByakkoRuntime.Get();
   if !IsDefined(rt) {
     return true;
   }

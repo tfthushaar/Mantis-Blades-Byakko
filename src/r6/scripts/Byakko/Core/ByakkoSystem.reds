@@ -1,16 +1,16 @@
-// White Tiger - The system
+// Byakko - The system
 //
 // Owns the burst window, the resting baseline and the two ticks that drive them. A
 // ScriptableSystem, so it is created with the session and torn down with it.
 //
-// There are no persistent fields in this class. White Tiger has nothing worth saving:
+// There are no persistent fields in this class. Byakko has nothing worth saving:
 // everything it does is a stat modifier on a weapon entity that only exists while the blades
 // are out. Nothing it writes survives a reload, so deleting the mod cannot leave a save in a
 // state the base game does not understand, and there is no schema to migrate on update.
 
-public class WhiteTigerSystem extends ScriptableSystem {
-  private let m_burst: ref<WTBurstState>;
-  private let m_baseline: ref<WTBaselineState>;
+public class ByakkoSystem extends ScriptableSystem {
+  private let m_burst: ref<BYKBurstState>;
+  private let m_baseline: ref<BYKBaselineState>;
 
   private let m_playerAttachCbId: Uint32;
   private let m_sessionStarted: Bool;
@@ -29,22 +29,22 @@ public class WhiteTigerSystem extends ScriptableSystem {
   private let m_settleTicks: Int32;     // stand-down counter after the world goes unstable
   private let m_diagKeyDown: Bool;     // diagnostic key debounce: some setups deliver only one of press/release
 
-  public static func Get(game: GameInstance) -> ref<WhiteTigerSystem> {
+  public static func Get(game: GameInstance) -> ref<ByakkoSystem> {
     // The systems container is null during world transitions; never dereference it then.
     let container = GameInstance.GetScriptableSystemsContainer(game);
     if !IsDefined(container) {
       return null;
     }
-    return container.Get(n"WhiteTigerSystem") as WhiteTigerSystem;
+    return container.Get(n"ByakkoSystem") as ByakkoSystem;
   }
 
   // ---- Lifecycle --------------------------------------------------------
 
   private func OnAttach() -> Void {
-    WTLog.Info(n"Core", s"White Tiger \(WhiteTigerVersion()) attaching.");
+    BYKLog.Info(n"Core", s"Byakko \(ByakkoVersion()) attaching.");
     this.EnsureSettings();
-    this.m_burst = new WTBurstState();
-    this.m_baseline = new WTBaselineState();
+    this.m_burst = new BYKBurstState();
+    this.m_baseline = new BYKBaselineState();
     this.RegisterPlayerAttach();
     // Register the diagnostic key and start a tick here as well as at session start. If the
     // player-attached callback is ever missed, this chain is the one that keeps retrying the
@@ -72,7 +72,7 @@ public class WhiteTigerSystem extends ScriptableSystem {
     this.m_generation += 1;
     this.m_burstTickLive = false;
     this.m_slowTickLive = false;
-    this.m_settleTicks = WTConfig.SettleTicks();
+    this.m_settleTicks = BYKConfig.SettleTicks();
 
     // Drop any window that was open before the load. The weapon it was applied to no longer
     // exists, so there is nothing to remove - but the handles have to go, or the next Clear
@@ -88,16 +88,16 @@ public class WhiteTigerSystem extends ScriptableSystem {
     this.EnsureCallbacks();
     this.m_sessionStarted = true;
     this.ScheduleSlowTick();
-    WTLog.Info(n"Core", "Session started.");
+    BYKLog.Info(n"Core", "Session started.");
   }
 
   private func EnsureSettings() -> Void {
-    let rt = WhiteTigerRuntime.Get();
+    let rt = ByakkoRuntime.Get();
     if IsDefined(rt) && !rt.HasSettings() {
-      let settings = new WhiteTigerSettings();
+      let settings = new ByakkoSettings();
       settings.Register();
       rt.SetSettings(settings);
-      WTLog.Verbose(n"Core", "Settings registered with Mod Settings.");
+      BYKLog.Verbose(n"Core", "Settings registered with Mod Settings.");
     }
   }
 
@@ -121,7 +121,7 @@ public class WhiteTigerSystem extends ScriptableSystem {
     this.m_generation += 1;
     this.m_burstTickLive = false;
     this.m_slowTickLive = false;
-    WTLog.Verbose(n"Core", "Detaching.");
+    BYKLog.Verbose(n"Core", "Detaching.");
   }
 
   // ---- Kills ------------------------------------------------------------
@@ -136,15 +136,15 @@ public class WhiteTigerSystem extends ScriptableSystem {
     // The death hook fires from inside the engine tearing the victim down. Reading the
     // player's equipment is safe there, but only once the world itself is settled - during a
     // load or a scene it is not, and a kill can land on the frame a scene starts.
-    if !WTWorldStable(game) {
+    if !BYKWorldStable(game) {
       return;
     }
-    let weapon = WTEquippedMantis(game);
+    let weapon = BYKEquippedMantis(game);
     if !IsDefined(weapon) {
       // The blades went away between the killing blow and the death. Nothing to buff.
       return;
     }
-    let settings = WTSettings();
+    let settings = BYKSettings();
     if IsDefined(settings) && !settings.burstEnabled {
       return;
     }
@@ -152,7 +152,7 @@ public class WhiteTigerSystem extends ScriptableSystem {
     this.ScheduleBurstTick();
 
     if IsDefined(settings) && settings.showBurstToast {
-      WTShowMessage(game, s"White Tiger: blades hot (\(this.m_burst.GetKills()))", 1.5);
+      BYKShowMessage(game, s"Byakko: blades hot (\(this.m_burst.GetKills()))", 1.5);
     }
   }
 
@@ -169,11 +169,11 @@ public class WhiteTigerSystem extends ScriptableSystem {
     if !IsDefined(ds) {
       return;
     }
-    let cb = new WTBurstTickCallback();
+    let cb = new BYKBurstTickCallback();
     cb.game = this.GetGameInstance();
     cb.generation = this.m_generation;
     this.m_burstTickLive = true;
-    ds.DelayCallback(cb, WTConfig.BurstTickSeconds(), false);
+    ds.DelayCallback(cb, BYKConfig.BurstTickSeconds(), false);
   }
 
   public func OnBurstTick(generation: Int32) -> Void {
@@ -203,7 +203,7 @@ public class WhiteTigerSystem extends ScriptableSystem {
     if !IsDefined(ds) {
       return;
     }
-    let cb = new WTSlowTickCallback();
+    let cb = new BYKSlowTickCallback();
     cb.game = this.GetGameInstance();
     cb.generation = this.m_generation;
     this.m_slowTickLive = true;
@@ -223,8 +223,8 @@ public class WhiteTigerSystem extends ScriptableSystem {
     // it reports itself stable again. The streaming system is still busy for a moment after
     // the loading screen clears, and the equipment lookup this tick performs is exactly the
     // kind of read that finds a half-built entity in that window.
-    if !WTWorldStable(game) {
-      this.m_settleTicks = WTConfig.SettleTicks();
+    if !BYKWorldStable(game) {
+      this.m_settleTicks = BYKConfig.SettleTicks();
       this.ScheduleSlowTick();
       return;
     }
@@ -234,14 +234,14 @@ public class WhiteTigerSystem extends ScriptableSystem {
       return;
     }
 
-    WTBaselineEvaluate(game, this.m_baseline, this.m_burst);
+    BYKBaselineEvaluate(game, this.m_baseline, this.m_burst);
     this.ScheduleSlowTick();
   }
 
   // ---- Diagnostics ------------------------------------------------------
 
   private cb func OnWTKeyInput(event: ref<KeyInputEvent>) -> Void {
-    let settings = WTSettings();
+    let settings = BYKSettings();
     if !IsDefined(settings) || !settings.diagnosticsEnabled {
       return;
     }
@@ -268,21 +268,21 @@ public class WhiteTigerSystem extends ScriptableSystem {
         return;   // already handled on the press
       }
     }
-    WTShowDiagnostics(this.GetGameInstance(), this);
+    BYKShowDiagnostics(this.GetGameInstance(), this);
   }
 
-  public func GetBurst() -> ref<WTBurstState> {
+  public func GetBurst() -> ref<BYKBurstState> {
     return this.m_burst;
   }
 }
 
 // Burst-expiry driver. Carries a generation token so a stale chain stops instead of stacking.
-public class WTBurstTickCallback extends DelayCallback {
+public class BYKBurstTickCallback extends DelayCallback {
   public let game: GameInstance;
   public let generation: Int32;
 
   public func Call() -> Void {
-    let sys = WhiteTigerSystem.Get(this.game);
+    let sys = ByakkoSystem.Get(this.game);
     if IsDefined(sys) {
       sys.OnBurstTick(this.generation);
     }
@@ -290,12 +290,12 @@ public class WTBurstTickCallback extends DelayCallback {
 }
 
 // Baseline driver, same generation rule.
-public class WTSlowTickCallback extends DelayCallback {
+public class BYKSlowTickCallback extends DelayCallback {
   public let game: GameInstance;
   public let generation: Int32;
 
   public func Call() -> Void {
-    let sys = WhiteTigerSystem.Get(this.game);
+    let sys = ByakkoSystem.Get(this.game);
     if IsDefined(sys) {
       sys.OnSlowTick(this.generation);
     }

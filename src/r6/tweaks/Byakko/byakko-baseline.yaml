@@ -1,4 +1,4 @@
-# White Tiger - Byakko baseline for Mantis Blades (data layer)
+# Byakko - Byakko baseline for Mantis Blades (data layer)
 #
 # This file carries the half of Byakko that is genuinely data: the reach, the leap, the
 # bleed, and the stamina flag. It is pure TweakXL, so it is reverted completely by
@@ -20,25 +20,25 @@
 # EffectiveRange - there is no BaseStats.Range record - so that is what +1m goes on.
 # ---------------------------------------------------------------------------
 
-WhiteTiger.Mod_Reach:
+Byakko.Mod_Reach:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.EffectiveRange
   value: 1.0
 
-WhiteTiger.Mod_Leap:
+Byakko.Mod_Leap:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.CanMeleeLeap
   value: 1.0
 
-WhiteTiger.Mod_LeapInAir:
+Byakko.Mod_LeapInAir:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.CanMeleeLeapInAir
   value: 1.0
 
-WhiteTiger.Mod_Bleed:
+Byakko.Mod_Bleed:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.BleedingApplicationRate
@@ -51,7 +51,7 @@ WhiteTiger.Mod_Bleed:
 # record name; correcting it here would silently target nothing.
 # ---------------------------------------------------------------------------
 
-WhiteTiger.Mod_IgnoreStaminaPenalty:
+Byakko.Mod_IgnoreStaminaPenalty:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.CanIgnoreWeaponStaminaPenaties
@@ -61,7 +61,7 @@ WhiteTiger.Mod_IgnoreStaminaPenalty:
 # +25% armour penetration, from the Byakko stat sheet.
 # ---------------------------------------------------------------------------
 
-WhiteTiger.Mod_ArmorPen:
+Byakko.Mod_ArmorPen:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
   statType: BaseStats.ArmorPenetrationBonus
@@ -74,7 +74,7 @@ WhiteTiger.Mod_ArmorPen:
 # no required field is missing - an incomplete group record loads but contributes nothing.
 # ---------------------------------------------------------------------------
 
-WhiteTiger.ByakkoBaseline:
+Byakko.Baseline:
   $type: gamedataStatModifierGroup_Record
   drawBasedOnStatType: False
   optimiseCombinedModifiers: False
@@ -82,12 +82,12 @@ WhiteTiger.ByakkoBaseline:
   statModsLimit: -1
   relatedModifierGroups: []
   statModifiers:
-    - WhiteTiger.Mod_Reach
-    - WhiteTiger.Mod_Leap
-    - WhiteTiger.Mod_LeapInAir
-    - WhiteTiger.Mod_Bleed
-    - WhiteTiger.Mod_IgnoreStaminaPenalty
-    - WhiteTiger.Mod_ArmorPen
+    - Byakko.Mod_Reach
+    - Byakko.Mod_Leap
+    - Byakko.Mod_LeapInAir
+    - Byakko.Mod_Bleed
+    - Byakko.Mod_IgnoreStaminaPenalty
+    - Byakko.Mod_ArmorPen
 
 # ---------------------------------------------------------------------------
 # Attach the group to every Mantis Blade in the game: all three elemental lines,
@@ -100,84 +100,84 @@ WhiteTiger.ByakkoBaseline:
 # ---------------------------------------------------------------------------
 
 Items.AdvancedMantisBladesChemicalEpic.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalEpicPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalLegendary.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalLegendaryPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalLegendaryPlusPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalRare.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalRarePlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalUncommon.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesChemicalUncommonPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricEpic.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricEpicPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricLegendary.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricLegendaryPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricLegendaryPlusPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricRare.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricRarePlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricUncommon.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesElectricUncommonPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesEpic.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesEpicPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesLegendary.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesLegendaryPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesLegendaryPlusPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesRare.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesRarePlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalEpic.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalEpicPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalLegendary.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalLegendaryPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalLegendaryPlusPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalRare.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalRarePlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalUncommon.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesThermalUncommonPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesUncommon.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMantisBladesUncommonPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMaxTacMantisBladesEpic.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMaxTacMantisBladesEpicPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMaxTacMantisBladesLegendary.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMaxTacMantisBladesLegendaryPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline
 Items.AdvancedMaxTacMantisBladesLegendaryPlusPlus.statModifierGroups:
-  - !append-once WhiteTiger.ByakkoBaseline
+  - !append-once Byakko.Baseline

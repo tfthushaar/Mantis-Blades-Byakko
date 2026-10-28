@@ -1,16 +1,19 @@
-# White Tiger
+# Byakko - Mantis Blades Overhaul
 
-**Mantis Blades that feel like Byakko.**
+**Mantis Blades that feel like the Byakko.**
 
-Byakko (白虎, "white tiger") is Wakako Okada's katana, and it is the best-feeling melee weapon
-in Cyberpunk 2077. What makes it feel that way is its loop. You kill someone and the weapon
-pays you back straight away: a burst of speed, and the stutter between light attacks
+The Byakko (白虎, "white tiger") is Wakako Okada's katana, and it is the best-feeling melee
+weapon in Cyberpunk 2077. What makes it feel that way is its loop. You kill someone and the
+weapon pays you back straight away: a burst of speed, and the stutter between light attacks
 disappears. You chain into the next target and keep it going.
 
 Mantis Blades are the most cyberpunk weapon in the game and they feel heavy and slow. Killing
 someone with them gives you nothing.
 
-White Tiger gives them Byakko's loop.
+This mod gives them that loop.
+
+Throughout this page, "the Byakko" means Wakako's katana and "this mod" means the thing you
+are installing.
 
 ---
 
@@ -22,10 +25,10 @@ White Tiger gives them Byakko's loop.
 |---|---|
 | Reach | +1 metre |
 | Leap | Leap at enemies, including in mid-air |
-| Bleed | Byakko's bleed application rate |
+| Bleed | The Byakko's bleed application rate |
 | Armour penetration | +25% |
 | Stamina | Attack speed no longer sags as stamina drains |
-| Resting attack speed | Brought up to 2.1, Byakko's number |
+| Resting attack speed | Brought up to 2.1, the Byakko's number |
 
 **On a kill with the blades**
 
@@ -51,8 +54,8 @@ All of it is adjustable in the settings menu, and the burst is the part worth tu
 **Strongly recommended**
 
 * [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588). Please
-  read [The 200% cap](#the-200-cap) below. Without it, White Tiger may do nothing at all for
-  you, and that would not be a bug in White Tiger.
+  read [The 200% cap](#the-200-cap) below. Without it this mod may do nothing at all for you,
+  and that would not be a bug in this mod.
 
 **Install**
 
@@ -62,15 +65,14 @@ folder, the one containing `bin`, `r6` and `engine`. You should end up with:
 ```
 Cyberpunk 2077/
   r6/
-    scripts/WhiteTiger/...
-    tweaks/WhiteTiger/...
+    scripts/Byakko/...
+    tweaks/Byakko/...
 ```
 
 **Uninstall**
 
-Delete those two `WhiteTiger` folders. White Tiger writes nothing into your save, so there is
-nothing to clean up and no safe-uninstall procedure to follow. Your character is exactly as it
-was.
+Delete those two `Byakko` folders. Nothing is written into your save, so there is nothing to
+clean up and no safe-uninstall procedure to follow. Your character is exactly as it was.
 
 ---
 
@@ -83,24 +85,23 @@ mod.
 your perks, your cyberware and your weapon stats, and they do absolutely nothing. A built
 Reflexes character can already be sitting at or near the cap before installing anything.
 
-So White Tiger can work perfectly on a fresh save and look completely dead on your real one.
-If that happens you are not misreading it and nothing is broken. You are over the cap and the
+So this mod can work perfectly on a fresh save and look completely dead on your real one. If
+that happens you are not misreading it and nothing is broken. You are over the cap and the
 game is throwing the extra away.
 
 [Melee Attack Speed Cap Fix](https://www.nexusmods.com/cyberpunk2077/mods/34588) removes the
-cap. White Tiger does not require it to install, and the reach, leap, bleed, armour
-penetration and combo-pause removal all work without it. The speed half of the mod needs
-headroom to live in.
+cap. This mod does not require it to install, and the reach, leap, bleed, armour penetration
+and combo-pause removal all work without it. The speed half needs headroom to live in.
 
-**Press F8 with the blades equipped and White Tiger will tell you whether this is happening to
+**Press F8 with the blades equipped and the mod will tell you whether this is happening to
 you.** See [Diagnostics](#diagnostics).
 
 ---
 
 ## Diagnostics
 
-Equip the Mantis Blades and press **F8** (rebindable). White Tiger prints what the game
-actually reports, on screen and into `red4ext/logs/`:
+Equip the Mantis Blades and press **F8** (rebindable). The mod prints what the game actually
+reports, on screen and into `red4ext/logs/`:
 
 * Both attack speed stats, the one the swing animation reads and the one the inventory screen
   shows. They are separate fields, and a mod can move one while you read the other.
@@ -116,17 +117,17 @@ before they need asking.
 
 ## Settings
 
-Under **White Tiger** in the Mod Settings menu. The defaults are Byakko's own numbers, so you
-do not have to configure anything to get the intended feel.
+Under **Byakko - Mantis Blades Overhaul** in the Mod Settings menu. The defaults are the
+katana's own numbers, so you do not have to configure anything to get the intended feel.
 
 **On-kill burst**
 
 | Setting | Default | |
 |---|---|---|
 | Burst on kill | on | The loop itself. |
-| Burst attack speed | 1.175 | Byakko's reported +17.5%. Mind the cap. |
-| Burst duration | 10s | Byakko's reported duration. Pauses in menus. |
-| Remove light combo pause | on | The other half of Byakko's iconic, and the part you feel most. |
+| Burst attack speed | 1.175 | The Byakko's reported +17.5%. Mind the cap. |
+| Burst duration | 10s | The Byakko's reported duration. Pauses in menus. |
+| Remove light combo pause | on | The other half of the Byakko's iconic, and the part you feel most. |
 | Also buff V, not just the blades | on | See the note below. |
 | Show a message on burst | off | Handy while tuning, noisy in a fight. |
 
@@ -135,12 +136,11 @@ do not have to configure anything to get the intended feel.
 | Setting | Default | |
 |---|---|---|
 | Lift resting attack speed | on | So the burst starts from a katana-like baseline. |
-| Resting target | 2.1 | Byakko's. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
+| Resting target | 2.1 | The Byakko's. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
 
 About "Also buff V": the blades are cyberware, and which stats object the melee animation
-reads for arm cyberware is uncertain and has changed between patches. White Tiger applies the
-burst to both the blades and V so it works either way. Turn it off if it fights with another
-melee mod.
+reads for arm cyberware is uncertain and has changed between patches. The burst is applied to
+both the blades and V so it works either way. Turn it off if it fights with another melee mod.
 
 ---
 
@@ -155,14 +155,14 @@ answer, and F8 is how you check.
 
 That is why the combo-pause removal is on by default and matters so much. It changes the feel
 through the animation state machine instead of the attack speed stat, so it keeps working even
-where the speed number is being ignored. If White Tiger feels good to you but the speed
-readout never seems to matter, that is what is going on.
+where the speed number is being ignored. If the mod feels good to you but the speed readout
+never seems to matter, that is what is going on.
 
-**Base damage is left alone.** Byakko's sheet lists 148, but Mantis Blades scale their damage
-with your level and tier. Pinning them to Byakko's number would be a straight downgrade on a
-Tier 5++ character, so White Tiger does not touch damage.
+**Base damage is left alone.** The Byakko's sheet lists 148, but Mantis Blades scale their
+damage with your level and tier. Pinning them to the katana's number would be a straight
+downgrade on a Tier 5++ character, so damage is not touched.
 
-**Stamina cost per swing is not forced to Byakko's 6.4.** The stamina penalty flag is what
+**Stamina cost per swing is not forced to the Byakko's 6.4.** The stamina penalty flag is what
 actually changes how the blades feel under pressure, and that is applied. The raw cost per
 swing is left to the game.
 
@@ -170,8 +170,8 @@ swing is left to the game.
 
 ## Compatibility
 
-White Tiger adds to the Mantis Blade records instead of overwriting them, so another mantis
-mod's changes survive alongside it. Where you both change the same stat, both apply.
+This mod adds to the Mantis Blade records instead of overwriting them, so another mantis mod's
+changes survive alongside it. Where you both change the same stat, both apply.
 
 Mods that occupy the same ground, worth a look before deciding you need this one:
 
@@ -182,13 +182,13 @@ Mods that occupy the same ground, worth a look before deciding you need this one
   complementary and effectively a soft requirement.
 
 If two mods set the same Mantis Blade stat to different absolute values, whichever loads last
-wins. If White Tiger's data layer is being overridden, F8 shows it as a `0`.
+wins. If this mod's data layer is being overridden, F8 shows it as a `0`.
 
 ---
 
 ## Safety
 
-White Tiger is built so it cannot corrupt a save or leave anything behind.
+Built so it cannot corrupt a save or leave anything behind.
 
 * **It persists nothing.** No save data, no schema, no migration. Everything it does is a stat
   modifier on a weapon that only exists while the blades are drawn.

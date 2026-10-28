@@ -1,4 +1,4 @@
-// White Tiger - Resting attack speed
+// Byakko - Resting attack speed
 //
 // The on-kill burst is the point of the mod, but a burst off a slow baseline still feels
 // slow between kills. Byakko sits at 2.1 attacks per second; stock Mantis Blades do not.
@@ -21,7 +21,7 @@
 // slower. So the order is always: remove ours, read, apply the new difference. Never read
 // first.
 
-public class WTBaselineState {
+public class BYKBaselineState {
   private let m_targetEntity: EntityID;
   private let m_mod: ref<gameStatModifierData>;
   private let m_appliedTarget: Float;   // the target that produced m_mod
@@ -32,12 +32,12 @@ public class WTBaselineState {
   // that moves the underlying number. Callers must not call it while a burst is live; see
   // the note in Evaluate.
   public func Apply(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
-    let settings = WTSettings();
+    let settings = BYKSettings();
     let enabled = true;
-    let target = WTConfig.RestingAttackSpeedDefault();
+    let target = BYKConfig.RestingAttackSpeedDefault();
     if IsDefined(settings) {
       enabled = settings.restingSpeedEnabled;
-      target = ClampF(settings.restingAttackSpeed, 0.0, WTConfig.MaxRestingAttackSpeed());
+      target = ClampF(settings.restingAttackSpeed, 0.0, BYKConfig.MaxRestingAttackSpeed());
     }
     if !enabled {
       this.Clear(game);
@@ -49,7 +49,7 @@ public class WTBaselineState {
       return;
     }
     let entity = weapon.GetEntityID();
-    let sid = WTWeaponStatsId(weapon);
+    let sid = BYKWeaponStatsId(weapon);
 
     // Take our own contribution off before reading, so what comes back is the blades
     // without us. This is the line that stops the value compounding.
@@ -68,7 +68,7 @@ public class WTBaselineState {
     if delta <= 0.001 {
       this.m_targetEntity = entity;
       this.m_appliedTarget = target;
-      WTLog.Verbose(n"Data", s"Resting speed already \(base) (target \(target)); nothing applied.");
+      BYKLog.Verbose(n"Data", s"Resting speed already \(base) (target \(target)); nothing applied.");
       return;
     }
 
@@ -78,7 +78,7 @@ public class WTBaselineState {
       this.m_mod = mod;
       this.m_targetEntity = entity;
       this.m_appliedTarget = target;
-      WTLog.Info(n"Data", s"Resting speed \(base) -> \(target) (+\(delta)).");
+      BYKLog.Info(n"Data", s"Resting speed \(base) -> \(target) (+\(delta)).");
     }
   }
 
@@ -94,14 +94,14 @@ public class WTBaselineState {
       }
     }
     this.m_mod = null;
-    this.m_targetEntity = WTNoEntity();
+    this.m_targetEntity = BYKNoEntity();
     this.m_appliedTarget = 0.0;
   }
 
   // Does this need re-evaluating? True when the blades changed, when the target moved
   // (the player dragged the slider), or when nothing has been applied yet.
   public func NeedsWork(game: GameInstance, weapon: wref<WeaponObject>) -> Bool {
-    let settings = WTSettings();
+    let settings = BYKSettings();
     if IsDefined(settings) && !settings.restingSpeedEnabled {
       return IsDefined(this.m_mod);
     }
@@ -111,9 +111,9 @@ public class WTBaselineState {
     if !Equals(this.m_targetEntity, weapon.GetEntityID()) {
       return true;
     }
-    let target = WTConfig.RestingAttackSpeedDefault();
+    let target = BYKConfig.RestingAttackSpeedDefault();
     if IsDefined(settings) {
-      target = ClampF(settings.restingAttackSpeed, 0.0, WTConfig.MaxRestingAttackSpeed());
+      target = ClampF(settings.restingAttackSpeed, 0.0, BYKConfig.MaxRestingAttackSpeed());
     }
     return AbsF(target - this.m_appliedTarget) > 0.001;
   }
@@ -124,18 +124,18 @@ public class WTBaselineState {
 // Skipped entirely while a burst is live: the burst puts a multiplier on the same stat, so
 // a read taken now would come back inflated and the computed difference would be wrong. The
 // window is seconds long and the next tick after it closes puts this right.
-public func WTBaselineEvaluate(game: GameInstance, baseline: ref<WTBaselineState>, burst: ref<WTBurstState>) -> Void {
+public func BYKBaselineEvaluate(game: GameInstance, baseline: ref<BYKBaselineState>, burst: ref<BYKBurstState>) -> Void {
   if !IsDefined(baseline) {
     return;
   }
-  if !WTEnabled() {
+  if !BYKEnabled() {
     baseline.Clear(game);
     return;
   }
   if IsDefined(burst) && burst.IsActive() {
     return;
   }
-  let weapon = WTEquippedMantis(game);
+  let weapon = BYKEquippedMantis(game);
   if !IsDefined(weapon) {
     // Blades not out. Nothing to keep current, and the modifier (if any) went with the
     // weapon entity when it was put away.

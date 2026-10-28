@@ -1,8 +1,8 @@
-// White Tiger - On-screen text
+// Byakko - On-screen text
 //
 // One helper, so the one blackboard write this mod performs for UI lives in a single place.
 
-public func WTShowMessage(game: GameInstance, text: String, duration: Float) -> Void {
+public func BYKShowMessage(game: GameInstance, text: String, duration: Float) -> Void {
   let bbs = GameInstance.GetBlackboardSystem(game);
   if !IsDefined(bbs) {
     return;

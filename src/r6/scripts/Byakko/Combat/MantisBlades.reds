@@ -1,4 +1,4 @@
-// White Tiger - Identifying the blades
+// Byakko - Identifying the blades
 //
 // Mantis Blades are cyberware, not an inventory weapon, so they live under their own record
 // tree and none of the katana record names reach them. The game does however give them
@@ -10,18 +10,18 @@
 // gamedataItemType.Cyb_MantisBlades is confirmed to exist on the installed game by compiling
 // a probe against the game's own scc.exe.
 
-public func WTIsMantisItem(id: ItemID) -> Bool {
+public func BYKIsMantisItem(id: ItemID) -> Bool {
   if !ItemID.IsValid(id) {
     return false;
   }
   return Equals(RPGManager.GetItemType(id), gamedataItemType.Cyb_MantisBlades);
 }
 
-public func WTIsMantisWeapon(weapon: wref<WeaponObject>) -> Bool {
+public func BYKIsMantisWeapon(weapon: wref<WeaponObject>) -> Bool {
   if !IsDefined(weapon) {
     return false;
   }
-  return WTIsMantisItem(weapon.GetItemID());
+  return BYKIsMantisItem(weapon.GetItemID());
 }
 
 // The Mantis Blade weapon object the player currently has out, or null.
@@ -30,8 +30,8 @@ public func WTIsMantisWeapon(weapon: wref<WeaponObject>) -> Bool {
 // player, an unstable world, nothing equipped, something else equipped, or an equipped
 // blade whose entity is not attached yet. Every caller treats null as "do nothing", which
 // is why this is allowed to be strict.
-public func WTEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
-  if !WTWorldStable(game) {
+public func BYKEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
+  if !BYKWorldStable(game) {
     return null;
   }
   let player = GetPlayer(game);
@@ -39,10 +39,10 @@ public func WTEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
     return null;
   }
   let weapon = GameObject.GetActiveWeapon(player);
-  if !WTWeaponSafe(weapon) {
+  if !BYKWeaponSafe(weapon) {
     return null;
   }
-  if !WTIsMantisWeapon(weapon) {
+  if !BYKIsMantisWeapon(weapon) {
     return null;
   }
   return weapon;
@@ -58,7 +58,7 @@ public func WTEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
 // so a modifier put on the player's stats object is simply not the number being read.
 // Putting it on V instead of on the blades is the single most likely reason a first attempt
 // at this appears to do nothing at all.
-public func WTWeaponStatsId(weapon: wref<WeaponObject>) -> StatsObjectID {
+public func BYKWeaponStatsId(weapon: wref<WeaponObject>) -> StatsObjectID {
   return Cast<StatsObjectID>(weapon.GetEntityID());
 }
 
@@ -67,7 +67,7 @@ public func WTWeaponStatsId(weapon: wref<WeaponObject>) -> StatsObjectID {
 // There is no EntityID.None() on this game version, and a struct field cannot simply be
 // assigned null, so a default-constructed local is the way to express "nothing here".
 // Pairs with EntityID.IsDefined, which is what every read of a cleared field checks.
-public func WTNoEntity() -> EntityID {
+public func BYKNoEntity() -> EntityID {
   let none: EntityID;
   return none;
 }

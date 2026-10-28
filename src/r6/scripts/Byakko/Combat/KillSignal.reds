@@ -1,4 +1,4 @@
-// White Tiger - Knowing a kill happened
+// Byakko - Knowing a kill happened
 //
 // Two hooks, both on the victim, both as cheap as they can be made.
 //
@@ -25,19 +25,19 @@
 // about to despawn, so there is nothing to clean up and nothing to persist.
 
 @addField(ScriptedPuppet)
-public let wtHitByMantis: Bool;
+public let bykHitByMantis: Bool;
 
 @wrapMethod(ScriptedPuppet)
 protected cb func OnHit(evt: ref<gameHitEvent>) -> Bool {
   let result = wrappedMethod(evt);
-  WTNoteMantisHit(this, evt);
+  BYKNoteMantisHit(this, evt);
   return result;
 }
 
 @wrapMethod(ScriptedPuppet)
 protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   let result = wrappedMethod(evt);
-  WTNoteDeath(this);
+  BYKNoteDeath(this);
   return result;
 }
 
@@ -45,7 +45,7 @@ protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
 //
 // Ordered cheapest-check-first so the overwhelming majority of hits - enemies shooting each
 // other, enemies shooting V - leave after one or two comparisons.
-func WTNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Void {
+func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Void {
   if !IsDefined(evt) || !IsDefined(evt.attackData) {
     return;
   }
@@ -57,11 +57,11 @@ func WTNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Voi
   // holding now, which can already have changed by the time the victim dies.
   let weapon = evt.attackData.GetWeapon() as WeaponObject;
   if IsDefined(weapon) {
-    if WTIsMantisWeapon(weapon) {
+    if BYKIsMantisWeapon(weapon) {
       // Sticky on purpose. A bleed tick started by the blades lands as a later hit with no
       // weapon attached to it, so the kill still has to count as a blade kill when the enemy
       // finally drops. That is why this is a flag rather than a per-hit decision.
-      puppet.wtHitByMantis = true;
+      puppet.bykHitByMantis = true;
     }
     return;
   }
@@ -74,21 +74,21 @@ func WTNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Voi
     return;
   }
   let held = GameObject.GetActiveWeapon(instigator);
-  if IsDefined(held) && WTIsMantisWeapon(held) {
-    puppet.wtHitByMantis = true;
+  if IsDefined(held) && BYKIsMantisWeapon(held) {
+    puppet.bykHitByMantis = true;
   }
 }
 
 // An enemy died. If the blades had a hand in it, open or refresh the window.
-func WTNoteDeath(puppet: ref<ScriptedPuppet>) -> Void {
-  if !puppet.wtHitByMantis {
+func BYKNoteDeath(puppet: ref<ScriptedPuppet>) -> Void {
+  if !puppet.bykHitByMantis {
     return;   // not a blade kill; nothing to do
   }
-  if !WTEnabled() {
+  if !BYKEnabled() {
     return;
   }
   let game = puppet.GetGame();
-  let sys = WhiteTigerSystem.Get(game);
+  let sys = ByakkoSystem.Get(game);
   if !IsDefined(sys) {
     return;
   }

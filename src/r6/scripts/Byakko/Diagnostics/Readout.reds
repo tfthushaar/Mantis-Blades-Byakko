@@ -1,4 +1,4 @@
-// White Tiger - Diagnostic readout (default F8)
+// Byakko - Diagnostic readout (default F8)
 //
 // This exists because of the specific way mods in this area fail. Attack speed on melee has
 // three traps stacked on top of each other, and all three produce the same symptom - the
@@ -19,21 +19,21 @@
 // numbers off the actual equipped blades costs a keypress. The readout reports what the game
 // says right now, including when the honest answer is that the data layer did not land.
 
-public func WTShowDiagnostics(game: GameInstance, sys: ref<WhiteTigerSystem>) -> Void {
-  let lines = WTBuildDiagnostics(game, sys);
-  WTShowMessage(game, lines, 12.0);
+public func BYKShowDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> Void {
+  let lines = BYKBuildDiagnostics(game, sys);
+  BYKShowMessage(game, lines, 12.0);
   // Also to the log, where it can be copied into a bug report and read without a 12-second
   // limit. The log is the useful copy; the on-screen one is for a quick look mid-fight.
-  WTLog.Info(n"Diag", lines);
+  BYKLog.Info(n"Diag", lines);
 }
 
-func WTBuildDiagnostics(game: GameInstance, sys: ref<WhiteTigerSystem>) -> String {
-  let out = s"White Tiger \(WhiteTigerVersion())\n";
+func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
+  let out = s"Byakko \(ByakkoVersion())\n";
 
-  if !WTEnabled() {
+  if !BYKEnabled() {
     return out + "Mod is switched off in settings.";
   }
-  if !WTWorldStable(game) {
+  if !BYKWorldStable(game) {
     return out + "World is mid-transition; try again once gameplay resumes.";
   }
   let stats = GameInstance.GetStatsSystem(game);
@@ -43,7 +43,7 @@ func WTBuildDiagnostics(game: GameInstance, sys: ref<WhiteTigerSystem>) -> Strin
   }
 
   // ---- The blades -------------------------------------------------------
-  let weapon = WTEquippedMantis(game);
+  let weapon = BYKEquippedMantis(game);
   if !IsDefined(weapon) {
     let active = GameObject.GetActiveWeapon(player);
     if IsDefined(active) {
@@ -55,7 +55,7 @@ func WTBuildDiagnostics(game: GameInstance, sys: ref<WhiteTigerSystem>) -> Strin
     return out;
   }
 
-  let sid = WTWeaponStatsId(weapon);
+  let sid = BYKWeaponStatsId(weapon);
   let speed = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
   let perSec = stats.GetStatValue(sid, gamedataStatType.AttacksPerSecond);
   let pSpeed = stats.GetStatValue(Cast<StatsObjectID>(player.GetEntityID()), gamedataStatType.AttackSpeed);
@@ -66,8 +66,8 @@ func WTBuildDiagnostics(game: GameInstance, sys: ref<WhiteTigerSystem>) -> Strin
 
   // Trap 2. Report it rather than trying to be clever about it: the cap is enforced by the
   // game, not here, so the only useful thing this mod can do is say when it is being hit.
-  if speed > WTConfig.VanillaMeleeSpeedCap() {
-    out += s"\nAbove the vanilla \(WTConfig.VanillaMeleeSpeedCap()) melee cap.\n";
+  if speed > BYKConfig.VanillaMeleeSpeedCap() {
+    out += s"\nAbove the vanilla \(BYKConfig.VanillaMeleeSpeedCap()) melee cap.\n";
     out += "Without Melee Attack Speed Cap Fix the excess is discarded.\n";
   }
 

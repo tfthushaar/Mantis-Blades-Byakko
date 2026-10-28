@@ -1,4 +1,4 @@
-// White Tiger - The Byakko loop
+// Byakko - The Byakko loop
 //
 // Kill someone with the blades and you get a short window where they move like Byakko does:
 // faster, and with the pause between light combo attacks gone. Kill again inside the window
@@ -35,7 +35,7 @@
 //      modifiers on a weapon entity die with that entity, so a weapon that has gone away
 //      needs its handles dropped, not removed.
 
-public class WTBurstState {
+public class BYKBurstState {
   private let m_active: Bool;
   private let m_deadline: Float;          // sim-time seconds
   private let m_targetEntity: EntityID;   // the weapon the modifiers are on
@@ -57,7 +57,7 @@ public class WTBurstState {
     if !this.m_active {
       return 0.0;
     }
-    return MaxF(0.0, this.m_deadline - WTNow(game));
+    return MaxF(0.0, this.m_deadline - BYKNow(game));
   }
 
   // Start a window, or push a live one's deadline out.
@@ -65,17 +65,17 @@ public class WTBurstState {
   // Called once per Mantis Blade kill. The weapon has already been checked as attached and
   // as actually being Mantis Blades by the caller.
   public func Arm(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
-    let settings = WTSettings();
-    let seconds = WTConfig.BurstSecondsDefault();
-    let mult = WTConfig.BurstMultDefault();
+    let settings = BYKSettings();
+    let seconds = BYKConfig.BurstSecondsDefault();
+    let mult = BYKConfig.BurstMultDefault();
     let killCombo = true;
     let buffPlayer = true;
     if IsDefined(settings) {
       // Both clamped rather than trusted. The sliders are bounded, but the values come back
       // through a settings file on disk that can be hand-edited, and a negative duration
       // would arm a window whose deadline is already in the past.
-      seconds = ClampF(settings.burstSeconds, 0.5, WTConfig.MaxBurstSeconds());
-      mult = ClampF(settings.burstMult, 1.0, WTConfig.MaxBurstMult());
+      seconds = ClampF(settings.burstSeconds, 0.5, BYKConfig.MaxBurstSeconds());
+      mult = ClampF(settings.burstMult, 1.0, BYKConfig.MaxBurstMult());
       killCombo = settings.burstRemovesComboPause;
       buffPlayer = settings.burstAlsoBuffsPlayer;
     }
@@ -85,9 +85,9 @@ public class WTBurstState {
     // Rule 1: a live window on this same weapon is refreshed, never re-applied. Adding a
     // second modifier here is exactly how this kind of mod ends up permanently stacked.
     if this.m_active && EntityID.IsDefined(entity) && Equals(this.m_targetEntity, entity) {
-      this.m_deadline = WTNow(game) + seconds;
+      this.m_deadline = BYKNow(game) + seconds;
       this.m_kills += 1;
-      WTLog.Verbose(n"Burst", s"Refreshed: \(seconds)s, chain \(this.m_kills).");
+      BYKLog.Verbose(n"Burst", s"Refreshed: \(seconds)s, chain \(this.m_kills).");
       return;
     }
 
@@ -99,7 +99,7 @@ public class WTBurstState {
     if !IsDefined(stats) {
       return;
     }
-    let sid = WTWeaponStatsId(weapon);
+    let sid = BYKWeaponStatsId(weapon);
 
     // The speed itself. Multiplier, so it scales whatever the blades are already at rather
     // than overwriting the player's own build.
@@ -142,9 +142,9 @@ public class WTBurstState {
 
     this.m_active = true;
     this.m_targetEntity = entity;
-    this.m_deadline = WTNow(game) + seconds;
+    this.m_deadline = BYKNow(game) + seconds;
     this.m_kills = 1;
-    WTLog.Info(n"Burst", s"Armed: x\(mult) for \(seconds)s.");
+    BYKLog.Info(n"Burst", s"Armed: x\(mult) for \(seconds)s.");
   }
 
   // Take everything back off. Safe to call at any time, including when nothing is applied,
@@ -179,8 +179,8 @@ public class WTBurstState {
     this.m_speedMod = null;
     this.m_comboMod = null;
     this.m_playerMod = null;
-    this.m_playerEntity = WTNoEntity();
-    this.m_targetEntity = WTNoEntity();
+    this.m_playerEntity = BYKNoEntity();
+    this.m_targetEntity = BYKNoEntity();
     this.m_active = false;
     this.m_kills = 0;
   }
@@ -210,17 +210,17 @@ public class WTBurstState {
     // Mid-transition: hold the window open and try again next tick rather than reach into a
     // streaming world to take the modifier off. The window does not tick down either, since
     // sim time does not advance while the game is not running.
-    if !WTWorldStable(game) {
+    if !BYKWorldStable(game) {
       return true;
     }
     // The blades are gone - holstered, swapped, or the save was reloaded. End the window.
     if !this.TargetAlive(game) {
-      WTLog.Verbose(n"Burst", "Target weapon gone; clearing.");
+      BYKLog.Verbose(n"Burst", "Target weapon gone; clearing.");
       this.Clear(game);
       return false;
     }
-    if WTNow(game) >= this.m_deadline {
-      WTLog.Info(n"Burst", s"Expired after \(this.m_kills) kill(s).");
+    if BYKNow(game) >= this.m_deadline {
+      BYKLog.Info(n"Burst", s"Expired after \(this.m_kills) kill(s).");
       this.Clear(game);
       return false;
     }
@@ -230,6 +230,6 @@ public class WTBurstState {
 
 // Sim time in seconds. Sim time does not advance while the game is paused or in a menu, so
 // a window does not quietly drain away while the player is in their inventory.
-public func WTNow(game: GameInstance) -> Float {
+public func BYKNow(game: GameInstance) -> Float {
   return EngineTime.ToFloat(GameInstance.GetSimTime(game));
 }

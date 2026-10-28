@@ -1,6 +1,6 @@
-// White Tiger - Runtime world-state gate (crash safety)
+// Byakko - Runtime world-state gate (crash safety)
 //
-// White Tiger reads the player's equipped weapon and writes stat modifiers onto that
+// Byakko reads the player's equipped weapon and writes stat modifiers onto that
 // weapon's entity. While the engine is streaming the world in or out - a load, a fast
 // travel, a time skip, a ripperdoc install, a scene - the player and their equipment are
 // half-built or being torn down, and touching them then dereferences a not-ready or freed
@@ -10,7 +10,7 @@
 // Every call here is confirmed to resolve against the installed game by compiling a probe
 // with the game's own scc.exe.
 
-public func WTWorldStable(game: GameInstance) -> Bool {
+public func BYKWorldStable(game: GameInstance) -> Bool {
   // No controllable player means a load / teleport / fast travel is in flight.
   let player = GetPlayer(game);
   if !IsDefined(player) {
@@ -57,7 +57,7 @@ public func WTWorldStable(game: GameInstance) -> Bool {
 // or being torn down (it is about to be freed). Writing a modifier onto either is how a
 // stat write turns into a crash, and it is also pointless - a detached weapon is not the
 // one being swung.
-public func WTWeaponSafe(weapon: wref<WeaponObject>) -> Bool {
+public func BYKWeaponSafe(weapon: wref<WeaponObject>) -> Bool {
   if !IsDefined(weapon) {
     return false;
   }

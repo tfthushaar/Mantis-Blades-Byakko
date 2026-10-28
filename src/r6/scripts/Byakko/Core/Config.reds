@@ -1,10 +1,10 @@
-// White Tiger - Tuning constants
+// Byakko - Tuning constants
 //
 // Anything a player is meant to change lives in Mod Settings instead (Settings/
-// WhiteTigerSettings.reds). What is left here is internal pacing and the safety margins,
+// ByakkoSettings.reds). What is left here is internal pacing and the safety margins,
 // kept in one place so none of them is buried as a literal at a call site.
 
-public abstract class WTConfig {
+public abstract class BYKConfig {
   // ---- Byakko's numbers -------------------------------------------------
   // Community-reported: about +17.5% attack speed for about 10 seconds on a kill, with the
   // light-combo pause removed. These are the defaults the Mod Settings sliders start at.

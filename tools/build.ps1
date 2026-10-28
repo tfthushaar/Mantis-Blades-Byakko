@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-  Builds the White Tiger release archive.
+  Builds the Byakko release archive.
 
 .DESCRIPTION
-  - Writes the version into src/r6/scripts/WhiteTiger/Core/Version.reds.
+  - Writes the version into src/r6/scripts/Byakko/Core/Version.reds.
   - Fails the build if any .reds file still contains the marker TODO-RELEASE.
-  - Produces dist/WhiteTiger-<Version>.zip laid out from the game root, so it installs
+  - Produces dist/Byakko-<Version>.zip laid out from the game root, so it installs
     with Vortex or by extracting over the Cyberpunk 2077 folder:
 
-      r6/scripts/WhiteTiger/...
-      r6/tweaks/WhiteTiger/...
+      r6/scripts/Byakko/...
+      r6/tweaks/Byakko/...
 
 .PARAMETER Version
   Semantic version, e.g. 1.0.0.
@@ -33,7 +33,7 @@ $ErrorActionPreference = 'Stop'
 $root    = Split-Path -Parent $PSScriptRoot
 $srcDir  = Join-Path $root 'src'
 $distDir = Join-Path $root 'dist'
-$verFile = Join-Path $srcDir 'r6/scripts/WhiteTiger/Core/Version.reds'
+$verFile = Join-Path $srcDir 'r6/scripts/Byakko/Core/Version.reds'
 
 # --- version code: major*10000 + minor*100 + patch -------------------------
 $parts = $Version.Split('.')
@@ -63,8 +63,8 @@ if ($GameDir) {
 # should not have to tolerate.
 Write-Host "Stamping version $Version (code $code) into Version.reds..."
 $verText = [System.IO.File]::ReadAllText($verFile)
-$verText = [regex]::Replace($verText, 'WhiteTigerVersion\(\) -> String = "[^"]*"', "WhiteTigerVersion() -> String = `"$Version`"")
-$verText = [regex]::Replace($verText, 'WhiteTigerVersionCode\(\) -> Int32 = \d+', "WhiteTigerVersionCode() -> Int32 = $code")
+$verText = [regex]::Replace($verText, 'ByakkoVersion\(\) -> String = "[^"]*"', "ByakkoVersion() -> String = `"$Version`"")
+$verText = [regex]::Replace($verText, 'ByakkoVersionCode\(\) -> Int32 = \d+', "ByakkoVersionCode() -> Int32 = $code")
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText($verFile, $verText, $utf8NoBom)
 
@@ -94,7 +94,7 @@ function New-ModZip {
 
 if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
 
-$mainZip = Join-Path $distDir "WhiteTiger-$Version.zip"
+$mainZip = Join-Path $distDir "Byakko-MantisBladesOverhaul-$Version.zip"
 Write-Host "Packaging $mainZip..."
 New-ModZip -SourceDir $srcDir -ZipPath $mainZip
 

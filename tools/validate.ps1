@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Compile-validates the White Tiger redscript against an installed Cyberpunk 2077.
+  Compile-validates the Byakko redscript against an installed Cyberpunk 2077.
 
 .DESCRIPTION
   Builds an isolated sandbox containing the mod plus its redscript dependencies
@@ -34,7 +34,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root      = Split-Path -Parent $PSScriptRoot
-$src       = Join-Path $root 'src/r6/scripts/WhiteTiger'
+$src       = Join-Path $root 'src/r6/scripts/Byakko'
 $scc       = Join-Path $GameDir 'engine/tools/scc.exe'
 $vanilla   = Join-Path $GameDir 'r6/cache/final.redscripts'
 $cwScripts = Join-Path $GameDir 'red4ext/plugins/Codeware/Scripts'
@@ -44,7 +44,7 @@ foreach ($p in @($scc, $vanilla, $cwScripts, $msDir)) {
   if (-not (Test-Path $p)) { throw "Required path not found: $p" }
 }
 
-$sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("whitetiger-validate-" + [Guid]::NewGuid().ToString('N'))
+$sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("byakko-validate-" + [Guid]::NewGuid().ToString('N'))
 $scripts = Join-Path $sandbox 'scripts'
 try {
   New-Item -ItemType Directory -Path $scripts -Force | Out-Null
@@ -53,7 +53,7 @@ try {
   Copy-Item (Join-Path $msDir '*.reds') (Join-Path $scripts 'mod_settings')
   if (-not $OnlyExtra) {
     if (-not (Test-Path $src)) { throw "Mod source not found: $src" }
-    Copy-Item $src (Join-Path $scripts 'WhiteTiger') -Recurse
+    Copy-Item $src (Join-Path $scripts 'Byakko') -Recurse
   }
   if ($ExtraDir) {
     if (-not (Test-Path $ExtraDir)) { throw "ExtraDir not found: $ExtraDir" }
@@ -66,7 +66,7 @@ try {
   Write-Host "Compiling against $vanilla ..."
   & $scc -compile $scripts -outputCacheFile $out $base
   if (Test-Path $out) {
-    Write-Host "`nOK: White Tiger compiles cleanly against this game version." -ForegroundColor Green
+    Write-Host "`nOK: Byakko compiles cleanly against this game version." -ForegroundColor Green
   } else {
     throw "Compilation failed (no output produced). See the errors above."
   }
