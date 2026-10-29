@@ -13,8 +13,29 @@ public abstract class BYKConfig {
   public static func BurstMultDefault() -> Float = 1.175
   public static func BurstSecondsDefault() -> Float = 10.0
 
-  // The Byakko's displayed attack speed. The resting target for the blades.
-  public static func RestingAttackSpeedDefault() -> Float = 2.1
+  // The resting target for the blades.
+  //
+  // Deliberately NOT the Byakko's 2.1, even though matching the katana was the original idea.
+  // See AnimationSafeCeilingDefault below: 2.1 is above the ceiling the game itself clamps
+  // melee attack speed to, and the Mantis Blade animations visibly come apart up there.
+  // 1.7 leaves room for the default burst to land just under the ceiling: 1.7 x 1.175 = 1.998.
+  public static func RestingAttackSpeedDefault() -> Float = 1.7
+
+  // ---- The animation-safe ceiling ---------------------------------------
+  //
+  // Vanilla sets BaseStats.AttackSpeed.max to 2.0, and that clamp is load-bearing rather than
+  // arbitrary. Mantis Blade light attacks are a chain that alternates arms, and the chain is
+  // driven by the animation graph, not by anything in TweakDB or reachable from script. Push
+  // the speed far enough past 2.0 and the graph stops advancing through the chain: every swing
+  // replays the first attack, so V slashes with the same arm over and over.
+  //
+  // On a stock install this never comes up, because the game clamps it for you. It only becomes
+  // reachable with a cap-raising mod installed, which is exactly the setup this mod recommends
+  // for getting the most out of the burst. So the mod has to hold the line itself.
+  //
+  // Both the resting target and the burst are held under this. Set it to 0 to switch the
+  // limiting off and accept the animation artefact.
+  public static func AnimationSafeCeilingDefault() -> Float = 2.0
 
   // ---- Burst tick -------------------------------------------------------
   // How often the expiry tick runs while a burst is live. It only runs while one is live,
@@ -49,8 +70,8 @@ public abstract class BYKConfig {
   public static func MaxBurstMult() -> Float = 3.0
   public static func MaxBurstSeconds() -> Float = 60.0
 
-  // The vanilla melee attack speed ceiling. Nothing here enforces it - the game does - but
-  // the diagnostic readout compares against it to tell the player whether their bonuses are
-  // being thrown away (see Diagnostics/Readout.reds).
+  // The vanilla melee attack speed clamp, BaseStats.AttackSpeed.max. Reported by the
+  // diagnostic so a player can see whether their bonuses are being discarded, and the default
+  // value of the animation-safe ceiling above.
   public static func VanillaMeleeSpeedCap() -> Float = 2.0
 }

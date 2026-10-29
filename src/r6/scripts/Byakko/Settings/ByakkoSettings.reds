@@ -78,7 +78,17 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.step", "0.05")
   @runtimeProperty("ModSettings.min", "0.5")
   @runtimeProperty("ModSettings.max", "6.0")
-  public let restingAttackSpeed: Float = 2.1;
+  public let restingAttackSpeed: Float = 1.7;
+
+  // ---- The animation ceiling --------------------------------------------
+  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Resting")
+  @runtimeProperty("ModSettings.displayName", "Byakko-SpeedCeiling")
+  @runtimeProperty("ModSettings.description", "Byakko-SpeedCeiling-Desc")
+  @runtimeProperty("ModSettings.step", "0.05")
+  @runtimeProperty("ModSettings.min", "0.0")
+  @runtimeProperty("ModSettings.max", "6.0")
+  public let animationSafeCeiling: Float = 2.0;
 
   // ---- Diagnostics ------------------------------------------------------
   @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")

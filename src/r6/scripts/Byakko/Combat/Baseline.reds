@@ -31,6 +31,25 @@ public class BYKBaselineState {
     return IsDefined(this.m_mod);
   }
 
+  // The resting target actually being aimed for: the setting, clamped to the guard rail and
+  // then held under the animation-safe ceiling.
+  //
+  // One function, used by both Apply and NeedsWork. When those two computed it separately,
+  // clamping in one and not the other made them disagree permanently, and NeedsWork would
+  // then report work outstanding on every single tick forever.
+  public func ResolvedTarget() -> Float {
+    let settings = BYKSettings();
+    let target = BYKConfig.RestingAttackSpeedDefault();
+    if IsDefined(settings) {
+      target = ClampF(settings.restingAttackSpeed, 0.0, BYKConfig.MaxRestingAttackSpeed());
+    }
+    let ceiling = BYKSpeedCeiling();
+    if ceiling > 0.0 && target > ceiling {
+      return ceiling;
+    }
+    return target;
+  }
+
   // Bring the equipped blades up to the configured resting attack speed.
   //
   // Safe to call repeatedly, which is how it tracks a perk, a level or a cyberware change
@@ -39,15 +58,14 @@ public class BYKBaselineState {
   public func Apply(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
     let settings = BYKSettings();
     let enabled = true;
-    let target = BYKConfig.RestingAttackSpeedDefault();
     if IsDefined(settings) {
       enabled = settings.restingSpeedEnabled;
-      target = ClampF(settings.restingAttackSpeed, 0.0, BYKConfig.MaxRestingAttackSpeed());
     }
     if !enabled {
       this.Clear(game);
       return;
     }
+    let target = this.ResolvedTarget();
 
     let stats = GameInstance.GetStatsSystem(game);
     if !IsDefined(stats) {
@@ -121,11 +139,8 @@ public class BYKBaselineState {
     if !BYKSameEntity(this.m_targetEntity, weapon.GetEntityID()) {
       return true;
     }
-    let target = BYKConfig.RestingAttackSpeedDefault();
-    if IsDefined(settings) {
-      target = ClampF(settings.restingAttackSpeed, 0.0, BYKConfig.MaxRestingAttackSpeed());
-    }
-    return AbsF(target - this.m_appliedTarget) > 0.001;
+    // Same resolution Apply uses, ceiling included, so the two cannot disagree.
+    return AbsF(this.ResolvedTarget() - this.m_appliedTarget) > 0.001;
   }
 }
 

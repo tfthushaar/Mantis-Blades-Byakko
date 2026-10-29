@@ -108,12 +108,27 @@ public class BYKBurstState {
     }
     let sid = BYKWeaponStatsId(weapon);
 
+    // Hold the burst under the animation-safe ceiling.
+    //
+    // Read what the blades are at right now, with the resting lift already on them, and pull
+    // the multiplier down if the product would cross the line. Past roughly the vanilla clamp
+    // the light-attack chain stops advancing through the animation graph and V slashes with
+    // the same arm repeatedly, which reads as a broken mod rather than a fast one.
+    let current = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
+    let applied = BYKClampMultToCeiling(current, mult);
+    if applied < mult {
+      BYKLog.Verbose(n"Burst", s"Held to the animation ceiling: x\(mult) -> x\(applied) at \(current).");
+    }
+
     // The speed itself. Multiplier, so it scales whatever the blades are already at rather
-    // than overwriting the player's own build.
-    let speed = RPGManager.CreateStatModifier(gamedataStatType.AttackSpeed, gameStatModifierType.Multiplier, mult);
-    if IsDefined(speed) {
-      stats.AddModifier(sid, speed);
-      this.m_speedMod = speed;
+    // than overwriting the player's own build. Skipped entirely when there is no headroom
+    // left, since a modifier of exactly 1.0 only costs a removal later.
+    if applied > 1.001 {
+      let speed = RPGManager.CreateStatModifier(gamedataStatType.AttackSpeed, gameStatModifierType.Multiplier, applied);
+      if IsDefined(speed) {
+        stats.AddModifier(sid, speed);
+        this.m_speedMod = speed;
+      }
     }
 
     // The part that is actually felt. The Byakko's iconic removes the pause between light
@@ -134,15 +149,22 @@ public class BYKBurstState {
     // arm cyberware is uncertain and varies by patch, and covering both costs one extra
     // modifier that comes off on the same tick as the other two. This only ever runs while V
     // is holding the blades.
-    if buffPlayer {
+    // Held to the same ceiling as the blade-side modifier, worked out against V's own current
+    // value rather than the weapon's. Buffing V past the line would break the animation just
+    // as readily, and it was the more likely culprit of the two.
+    if buffPlayer && applied > 1.001 {
       let player = GetPlayer(game);
       if IsDefined(player) {
-        let pMod = RPGManager.CreateStatModifier(gamedataStatType.AttackSpeed, gameStatModifierType.Multiplier, mult);
-        if IsDefined(pMod) {
-          let pid = Cast<StatsObjectID>(player.GetEntityID());
-          stats.AddModifier(pid, pMod);
-          this.m_playerMod = pMod;
-          this.m_playerEntity = player.GetEntityID();
+        let pid = Cast<StatsObjectID>(player.GetEntityID());
+        let pCurrent = stats.GetStatValue(pid, gamedataStatType.AttackSpeed);
+        let pApplied = BYKClampMultToCeiling(pCurrent, applied);
+        if pApplied > 1.001 {
+          let pMod = RPGManager.CreateStatModifier(gamedataStatType.AttackSpeed, gameStatModifierType.Multiplier, pApplied);
+          if IsDefined(pMod) {
+            stats.AddModifier(pid, pMod);
+            this.m_playerMod = pMod;
+            this.m_playerEntity = player.GetEntityID();
+          }
         }
       }
     }
@@ -159,7 +181,7 @@ public class BYKBurstState {
     this.m_targetEntity = entity;
     this.m_deadline = BYKNow(game) + seconds;
     this.m_kills = 1;
-    BYKLog.Info(n"Burst", s"Armed: x\(mult) for \(seconds)s.");
+    BYKLog.Info(n"Burst", s"Armed: x\(applied) for \(seconds)s.");
   }
 
   // Take everything back off. Safe to call at any time, including when nothing is applied,

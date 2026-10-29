@@ -70,8 +70,21 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   // Trap 2. Report it rather than trying to be clever about it: the cap is enforced by the
   // game, not here, so the only useful thing this mod can do is say when it is being hit.
   if speed > BYKConfig.VanillaMeleeSpeedCap() {
-    out += s"\nAbove the vanilla \(BYKConfig.VanillaMeleeSpeedCap()) melee cap.\n";
-    out += "Without Melee Attack Speed Cap Fix the excess is discarded.\n";
+    out += s"\nAbove the vanilla \(BYKConfig.VanillaMeleeSpeedCap()) melee clamp.\n";
+    out += "Without a cap-raising mod the excess is discarded.\n";
+  }
+
+  // The animation ceiling, and whether it is currently holding anything back. Worth printing
+  // because its whole job is to stop the blades reaching a speed where the light-attack chain
+  // stops alternating arms, and a player who has raised it wants to see that they did.
+  let ceiling = BYKSpeedCeiling();
+  if ceiling <= 0.0 {
+    out += "\nAnimation ceiling: off. Same-arm slashing in long combos is expected.\n";
+  } else {
+    out += s"\nAnimation ceiling: \(ceiling)\n";
+    if speed >= ceiling - 0.01 {
+      out += "  At the ceiling. The burst will not push speed any higher.\n";
+    }
   }
 
   // ---- Did the data layer land? -----------------------------------------

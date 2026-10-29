@@ -1,12 +1,39 @@
 # Changelog
 
+## 1.0.1
+
+Fixes an animation bug: during a long combo at high attack speed, V would slash with the same
+arm over and over instead of alternating.
+
+Mantis Blade light attacks are a chain that alternates arms, and the chain lives in the
+animation graph rather than anywhere a mod can reach. Past roughly 2.0 attack speed the graph
+stops advancing through it and every swing replays the first attack. Vanilla clamps melee
+attack speed to 2.0, very likely for this reason, so the problem only appears once a
+cap-raising mod removes that clamp. The resting target shipped at 2.1, which is above the
+clamp, so with a cap fix installed the blades sat in the broken regime permanently.
+
+- New **Animation ceiling** setting, default 2.0, which is the highest the blades will be
+  pushed by the resting lift and the burst together. Set it to 0 to switch the limiting off.
+- The resting target default drops from 2.1 to 1.7, so the default burst lands just under the
+  ceiling: 1.7 x 1.175 = 1.998.
+- The burst multiplier is now reduced rather than applied blindly when it would cross the
+  ceiling, and skipped altogether when there is no headroom. This applies to the modifier
+  mirrored onto V as well, worked out against V's own value.
+- F8 reports the ceiling and says when you are sitting at it.
+
+If you preferred the old behaviour, set the animation ceiling to 0 and the resting target back
+to 2.1.
+
+---
+
+
 ## 1.0.0
 
 First public release.
 
 Mantis Blades get the Byakko's loop. While the blades are equipped: +1 metre reach, a leap at
 enemies including in mid-air, the Byakko's bleed rate, +25% armour penetration, attack speed
-that no longer sags as stamina drains, and a resting attack speed brought up to 2.1. On a kill
+that no longer sags as stamina drains, and a lifted resting attack speed. On a kill
 with the blades: a burst of attack speed and the light combo pause removed for ten seconds,
 restarting on every further kill.
 

@@ -20,6 +20,14 @@ Copying the Byakko's stats onto the blades is not enough to get there, because t
 
 [b]Nothing is written to your save.[/b] Everything the mod does is a stat modifier on a weapon that only exists while the blades are drawn. Uninstalling is deleting two folders, and your character is exactly as it was.
 
+[size=3]The animation ceiling[/size]
+
+Mantis Blade light attacks are a chain that alternates arms, and that chain lives in the game's animation graph rather than anywhere a mod can reach. Push attack speed far enough past 2.0 and the graph stops advancing through it: every swing replays the first attack, so V slashes with the same arm over and over.
+
+Vanilla clamps melee attack speed to 2.0, which is very likely why. On a stock install you never meet this, because the game holds the line for you. Install a cap-raising mod and that clamp is gone, so this mod holds the line itself instead.
+
+The [b]Animation ceiling[/b] setting is the highest the blades get pushed, by the resting lift and the burst together. It defaults to 2.0, and the other defaults sit just under it. Raise it if you would rather have the speed than the arm alternation, or set it to 0 to switch the limiting off. F8 reports the ceiling and tells you when you are sitting at it.
+
 [size=3]A note on the 200% melee cap[/size]
 
 Vanilla clamps melee attack speed at 200%. Bonuses past that ceiling still show on your perks, cyberware and weapon stats and do nothing at all, and a built Reflexes character can already be at it. Only the speed half of the burst is affected by this. The combo-pause removal works through the animation state machine and never touches the attack speed stat, and the reach, leap, bleed, armour penetration and stamina flag are unaffected.
@@ -67,7 +75,7 @@ MAIN FEATURES
 [*][b]The Byakko's bleed application rate.[/b]
 [*][b]+25% armour penetration.[/b]
 [*][b]Attack speed no longer sags as stamina drains.[/b] This is Black Unicorn's one flag, and it changes how the blades feel under pressure more than the number suggests.
-[*][b]Resting attack speed brought up to 2.1[/b], the Byakko's number, so the burst starts from a katana-like baseline instead of a slow one. It only ever speeds the blades up: if your build is already faster, nothing is applied.
+[*][b]A lifted resting attack speed[/b], so the burst starts from a katana-like baseline instead of a slow one. Held as high as the attack animations hold up, which is explained under the animation ceiling below. It only ever speeds the blades up: if your build is already faster, nothing is applied.
 [/list]
 
 [b]On a kill with the blades[/b]
@@ -85,7 +93,7 @@ MAIN FEATURES
 [b]Everything is tunable in game[/b]
 [list]
 [*]Burst strength, duration, whether it removes the combo pause, and whether it applies to V as well as the blades.
-[*]Resting attack speed target, or turn the resting lift off entirely.
+[*]Resting attack speed target, the animation ceiling, or turn the resting lift off entirely.
 [*]Defaults are the Byakko's own numbers, so nothing needs configuring.
 [/list]
 

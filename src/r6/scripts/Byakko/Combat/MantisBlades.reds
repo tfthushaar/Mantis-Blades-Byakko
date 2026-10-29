@@ -95,6 +95,44 @@ public func BYKSameEntity(a: EntityID, b: EntityID) -> Bool {
   return Equals(EntityID.GetHash(a), EntityID.GetHash(b));
 }
 
+// The configured animation-safe ceiling, or 0 when the player has switched it off.
+//
+// Lives here rather than being read at each call site so the burst and the baseline cannot
+// end up disagreeing about what the limit is.
+public func BYKSpeedCeiling() -> Float {
+  let settings = BYKSettings();
+  if !IsDefined(settings) {
+    return BYKConfig.AnimationSafeCeilingDefault();
+  }
+  if settings.animationSafeCeiling <= 0.0 {
+    return 0.0;   // switched off
+  }
+  return ClampF(settings.animationSafeCeiling, 1.0, BYKConfig.MaxRestingAttackSpeed());
+}
+
+// Reduce a multiplier so that applying it to `current` does not cross the ceiling.
+//
+// Returns 1.0 when there is no headroom left at all, which callers treat as "do not apply a
+// speed modifier", so nothing is added that the engine would only clamp or that would break
+// the attack animation.
+//
+// Why this exists: Mantis Blade light attacks alternate arms through a chain held in the
+// animation graph. Past roughly the vanilla clamp the graph stops advancing and every swing
+// replays the first attack with the same arm. The speed is not worth the mod looking broken.
+public func BYKClampMultToCeiling(current: Float, mult: Float) -> Float {
+  let ceiling = BYKSpeedCeiling();
+  if ceiling <= 0.0 {
+    return mult;      // limiting switched off
+  }
+  if current <= 0.01 {
+    return mult;      // nothing sensible to divide by; leave the caller's value alone
+  }
+  if current * mult <= ceiling {
+    return mult;      // already fits
+  }
+  return MaxF(1.0, ceiling / current);
+}
+
 // Is this entity id still a live, attached game object?
 //
 // Shared by the burst and the baseline, because both face the same question before taking a

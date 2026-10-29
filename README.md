@@ -28,7 +28,7 @@ are installing.
 | Bleed | The Byakko's bleed application rate |
 | Armour penetration | +25% |
 | Stamina | Attack speed no longer sags as stamina drains |
-| Resting attack speed | Brought up to 2.1, the Byakko's number |
+| Resting attack speed | Brought up to 1.7, as high as the attack animations hold up |
 
 **On a kill with the blades**
 
@@ -109,6 +109,27 @@ rather than leaving you to guess. See [Diagnostics](#diagnostics).
 
 ---
 
+## The animation ceiling
+
+Mantis Blade light attacks are a chain that alternates arms, and that chain lives in the
+animation graph rather than anywhere a mod can reach. Push attack speed far enough past 2.0
+and the graph stops advancing through it: every swing replays the first attack, so V slashes
+with the same arm over and over.
+
+Vanilla clamps melee attack speed to 2.0, which is very likely why. On a stock install you
+never meet this, because the game is holding the line for you. Install a cap-raising mod and
+that clamp is gone, which is exactly the setup that gets the most out of the burst, so this mod
+holds the line itself instead.
+
+The **Animation ceiling** setting is the highest the blades get pushed, by the resting lift and
+the burst together. It defaults to 2.0 and the other defaults are picked to sit just under it:
+a resting target of 1.7 times the default burst of 1.175 comes to 1.998.
+
+Raise it if you would rather have the speed than the arm alternation, or set it to 0 to switch
+the limiting off entirely. F8 reports the ceiling and tells you when you are sitting at it.
+
+---
+
 ## Diagnostics
 
 Equip the Mantis Blades and press **F8** (rebindable). The mod prints what the game actually
@@ -147,7 +168,8 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Setting | Default | |
 |---|---|---|
 | Lift resting attack speed | on | So the burst starts from a katana-like baseline. |
-| Resting target | 2.1 | The Byakko's. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
+| Animation ceiling | 2.0 | The highest the blades get pushed, resting lift and burst together. See below. 0 switches the limiting off. |
+| Resting target | 1.7 | Held under the animation ceiling below. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
 
 About "Also buff V": the blades are cyberware, and which stats object the melee animation
 reads for arm cyberware is uncertain and has changed between patches. The burst is applied to

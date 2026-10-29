@@ -68,7 +68,11 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
 
     this.Text("Byakko-RestingSpeed", "Resting attack speed target");
     this.Text("Byakko-RestingSpeed-Desc",
-      "The attack speed the blades are brought up to. 2.1 is the Byakko's. This only ever speeds the blades up - if your build is already faster than the target, nothing is applied.");
+      "The attack speed the blades are brought up to. Held under the animation ceiling below, so raising this past that has no effect until you raise the ceiling too. This only ever speeds the blades up: if your build is already faster than the target, nothing is applied.");
+
+    this.Text("Byakko-SpeedCeiling", "Animation ceiling");
+    this.Text("Byakko-SpeedCeiling-Desc",
+      "Highest attack speed the blades will be pushed to, by the resting lift and the burst together. Mantis Blade light attacks alternate arms through a chain held in the animation graph, and past about 2.0 the chain stops advancing, so V slashes with the same arm over and over. Vanilla clamps melee attack speed to 2.0 for what is probably this reason; a cap-raising mod removes that clamp, which is why this exists. Set to 0 to switch the limiting off and accept the animation artefact.");
 
     // ---- Diagnostics ----------------------------------------------------
     this.Text("Byakko-DiagEnabled", "Enable diagnostic key");
