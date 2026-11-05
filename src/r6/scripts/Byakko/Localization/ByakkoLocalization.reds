@@ -72,7 +72,7 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
 
     this.Text("Byakko-SpeedCeiling", "Animation ceiling");
     this.Text("Byakko-SpeedCeiling-Desc",
-      "Highest attack speed the blades will be pushed to, by the resting lift and the burst together. Mantis Blade light attacks alternate arms through a chain held in the animation graph, and past about 2.0 the chain stops advancing, so V slashes with the same arm over and over. Vanilla clamps melee attack speed to 2.0 for what is probably this reason; a cap-raising mod removes that clamp, which is why this exists. Set to 0 to switch the limiting off and accept the animation artefact.");
+      "Highest attack speed the blades will be pushed to, by the resting lift and the burst together. Mantis Blade light attacks alternate arms through a chain held in the animation graph, and push the speed far enough past it and the chain stops advancing, so V slashes with the same arm over and over. Vanilla clamps melee attack speed to 2.0 for what is probably this reason; a cap-raising mod removes that clamp, which is why this exists. The default of 2.2 takes most of the headroom while staying clear of where the problem was reported. If same-arm slashing turns up, bring this down. Set to 0 to switch the limiting off entirely.");
 
     // ---- Diagnostics ----------------------------------------------------
     this.Text("Byakko-DiagEnabled", "Enable diagnostic key");

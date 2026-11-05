@@ -14,7 +14,64 @@ public func BYKIsMantisItem(id: ItemID) -> Bool {
   if !ItemID.IsValid(id) {
     return false;
   }
-  return Equals(RPGManager.GetItemType(id), gamedataItemType.Cyb_MantisBlades);
+  if Equals(RPGManager.GetItemType(id), gamedataItemType.Cyb_MantisBlades) {
+    return true;
+  }
+  // Belt and braces: match the record name too.
+  //
+  // The item type is the authority and covers all 41 of the game's Mantis Blade records,
+  // MaxTac included, since Cyb_MantisBlades is the only mantis type in either the base or the
+  // Phantom Liberty database. This second check exists for records this mod has never seen:
+  // a future patch, or another mod's custom blades whose item type was set to something else.
+  // Missing those would be silent, and a string compare on a weapon swap costs nothing.
+  //
+  // ToStringDEBUG can return an empty string, in which case this simply never matches and the
+  // item type above remains the only test, which is how the check behaved before this existed.
+  let name = TDBID.ToStringDEBUG(ItemID.GetTDBID(id));
+  if Equals(name, "") {
+    return false;
+  }
+  return StrContains(name, "MantisBlades") || StrContains(name, "mantis_blades");
+}
+
+// The Mantis Blades installed in V's arms, drawn or not, or an invalid ItemID.
+//
+// Separate from the equipped-weapon lookup because the two answer different questions. The
+// blades are only the *active weapon* while they are actually deployed, so with a gun in hand
+// the equipped-weapon check correctly reports no blades even though they are installed. The
+// diagnostic needs to tell those two cases apart, because they look identical to a player who
+// just pressed the hotkey and got told they have no Mantis Blades.
+public func BYKInstalledMantisItem(game: GameInstance) -> ItemID {
+  let player = GetPlayer(game);
+  if !IsDefined(player) {
+    return ItemID.None();
+  }
+  let data = EquipmentSystem.GetData(player);
+  if !IsDefined(data) {
+    return ItemID.None();
+  }
+  let id = data.GetActiveItem(gamedataEquipmentArea.ArmsCW);
+  if BYKIsMantisItem(id) {
+    return id;
+  }
+  return ItemID.None();
+}
+
+// A readable name for whatever item this is, for the diagnostic. Falls back to the item type
+// when the record name is unavailable, and to a placeholder when neither can be read.
+public func BYKDescribeItem(id: ItemID) -> String {
+  if !ItemID.IsValid(id) {
+    return "none";
+  }
+  let name = TDBID.ToStringDEBUG(ItemID.GetTDBID(id));
+  let kind = EnumValueToString("gamedataItemType", Cast<Int64>(EnumInt(RPGManager.GetItemType(id))));
+  if NotEquals(name, "") {
+    return name + "  [" + kind + "]";
+  }
+  if NotEquals(kind, "") {
+    return "[" + kind + "]";
+  }
+  return "unreadable";
 }
 
 public func BYKIsMantisWeapon(weapon: wref<WeaponObject>) -> Bool {

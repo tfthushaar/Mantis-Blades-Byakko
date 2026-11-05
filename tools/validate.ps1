@@ -87,9 +87,23 @@ function Invoke-SccCompile {
     Copy-Item $vanilla $base
     $outCache = Join-Path $sandbox 'out.redscripts'
     if ($Quiet) {
-      $log = & $scc -compile $scriptsDir -outputCacheFile $outCache $base 2>&1 | Out-String
+      # Captured through files rather than with 2>&1.
+      #
+      # scc writes its progress to stderr, and in Windows PowerShell 5.1 redirecting a native
+      # command's stderr inline wraps each line in an ErrorRecord. Under
+      # ErrorActionPreference = Stop that turned the compiler's first INFO line into a
+      # terminating error, and this harness then reported compile failures that a plain build
+      # did not reproduce. Redirecting to files keeps the exit status honest.
+      $outLog = Join-Path $sandbox 'scc.out'
+      $errLog = Join-Path $sandbox 'scc.err'
+      Start-Process -FilePath $scc -ArgumentList @('-compile', $scriptsDir, '-outputCacheFile', $outCache, $base) `
+        -NoNewWindow -Wait -RedirectStandardOutput $outLog -RedirectStandardError $errLog | Out-Null
       if (-not (Test-Path $outCache)) {
-        ($log -split "`n") | Where-Object { $_ -match 'ERROR|unresolved|syntax' } |
+        $lines = @()
+        foreach ($f in @($outLog, $errLog)) {
+          if (Test-Path $f) { $lines += @(Get-Content -Path $f) }
+        }
+        $lines | Where-Object { $_ -match 'ERROR|unresolved|syntax' } |
           Select-Object -First 4 | ForEach-Object { Write-Host ("      " + $_.Trim()) }
       }
     } else {

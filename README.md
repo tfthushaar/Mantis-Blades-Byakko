@@ -28,7 +28,7 @@ are installing.
 | Bleed | The Byakko's bleed application rate |
 | Armour penetration | +25% |
 | Stamina | Attack speed no longer sags as stamina drains |
-| Resting attack speed | Brought up to 1.7, as high as the attack animations hold up |
+| Resting attack speed | Brought up to 1.85, as high as the attack animations hold up |
 
 **On a kill with the blades**
 
@@ -122,8 +122,14 @@ that clamp is gone, which is exactly the setup that gets the most out of the bur
 holds the line itself instead.
 
 The **Animation ceiling** setting is the highest the blades get pushed, by the resting lift and
-the burst together. It defaults to 2.0 and the other defaults are picked to sit just under it:
-a resting target of 1.7 times the default burst of 1.175 comes to 1.998.
+the burst together. It defaults to 2.2 and the other defaults are picked to sit just under it:
+a resting target of 1.85 times the default burst of 1.175 comes to 2.174.
+
+That 2.2 is a judgement call rather than a measured threshold. What is known is that vanilla
+clamps at 2.0 and behaves, and that about 2.47 is where the arm alternation was seen breaking.
+Where between the two it actually goes wrong has not been pinned down, so 2.2 takes most of the
+headroom while staying clear of the known-bad figure. If same-arm slashing turns up for you,
+this is the number to bring down.
 
 Raise it if you would rather have the speed than the arm alternation, or set it to 0 to switch
 the limiting off entirely. F8 reports the ceiling and tells you when you are sitting at it.
@@ -168,8 +174,8 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Setting | Default | |
 |---|---|---|
 | Lift resting attack speed | on | So the burst starts from a katana-like baseline. |
-| Animation ceiling | 2.0 | The highest the blades get pushed, resting lift and burst together. See below. 0 switches the limiting off. |
-| Resting target | 1.7 | Held under the animation ceiling below. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
+| Animation ceiling | 2.2 | The highest the blades get pushed, resting lift and burst together. See below. 0 switches the limiting off. |
+| Resting target | 1.85 | Held under the animation ceiling below. Only ever speeds the blades up. If your build is already faster, nothing is applied. |
 
 About "Also buff V": the blades are cyberware, and which stats object the melee animation
 reads for arm cyberware is uncertain and has changed between patches. The burst is applied to

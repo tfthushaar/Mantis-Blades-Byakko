@@ -16,10 +16,9 @@ public abstract class BYKConfig {
   // The resting target for the blades.
   //
   // Deliberately NOT the Byakko's 2.1, even though matching the katana was the original idea.
-  // See AnimationSafeCeilingDefault below: 2.1 is above the ceiling the game itself clamps
-  // melee attack speed to, and the Mantis Blade animations visibly come apart up there.
-  // 1.7 leaves room for the default burst to land just under the ceiling: 1.7 x 1.175 = 1.998.
-  public static func RestingAttackSpeedDefault() -> Float = 1.7
+  // See AnimationSafeCeilingDefault below. 1.85 leaves room for the default burst to land just
+  // under the ceiling: 1.85 x 1.175 = 2.174.
+  public static func RestingAttackSpeedDefault() -> Float = 1.85
 
   // ---- The animation-safe ceiling ---------------------------------------
   //
@@ -35,7 +34,14 @@ public abstract class BYKConfig {
   //
   // Both the resting target and the burst are held under this. Set it to 0 to switch the
   // limiting off and accept the animation artefact.
-  public static func AnimationSafeCeilingDefault() -> Float = 2.0
+  //
+  // 2.2 rather than the vanilla 2.0, and that number is a judgement call rather than a measured
+  // threshold. What is actually known: 2.0 is where vanilla clamps and behaves, and about 2.47
+  // is where the arm alternation was reported breaking (a 2.1 resting target times the 1.175
+  // burst). Where between those two it actually goes wrong has not been measured. 2.2 takes
+  // most of the available headroom while staying well clear of the known-bad figure. If the
+  // same-arm slashing comes back, this is the number to bring down.
+  public static func AnimationSafeCeilingDefault() -> Float = 2.2
 
   // ---- Burst tick -------------------------------------------------------
   // How often the expiry tick runs while a burst is live. It only runs while one is live,

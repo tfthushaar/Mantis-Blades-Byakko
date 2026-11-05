@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.0.2
+
+Fixes the mod doing nothing on some setups, adds a little more speed, and gives a clearer
+answer when the hotkey says you have no Mantis Blades.
+
+**The mod could stand down permanently and never recover.** Its world-state gate included a
+`UI_System.IsInMenu` check, and on some setups that reads true during ordinary gameplay. The
+gate then never opened, every tick stood down, and F8 reported "world is mid-transition" in
+the middle of normal play. That check is gone. It was also the wrong signal: an open inventory
+is not a hazard to anything this mod does, and the cases that genuinely are (a load, a pause,
+photo mode, the ripperdoc chair, a cutscene) are each covered by their own check. Photo mode is
+now checked explicitly as well. Thanks to the player who tracked this down and found that
+swapping it for a photo mode check fixed it.
+
+The gate is now written to fail open rather than closed. A gate that wrongly says "unstable"
+costs the entire mod; one that wrongly says "stable" for a single tick costs a stat read that
+the per-weapon checks refuse anyway. Those are not symmetric.
+
+**F8 now names the check that refused**, instead of saying only that the world is
+mid-transition. If a gate ever misfires again, the readout says which one.
+
+- **Animation ceiling raised from 2.0 to 2.2**, and the resting target from 1.7 to 1.85, so the
+  blades sit and burst faster than in 1.0.1. The ceiling figure is a judgement call: vanilla
+  clamps at 2.0 and behaves, about 2.47 is where the same-arm slashing was reported, and where
+  between them it actually breaks has not been pinned down. If it turns up for you, bring the
+  ceiling down in the settings.
+- **MaxTac Mantis Blades were never excluded.** All five MaxTac records are in the data layer,
+  and `Cyb_MantisBlades` is the only Mantis Blade item type in either the base game or Phantom
+  Liberty, so the effect applies to them exactly as it does to the rest. If F8 told you
+  otherwise, the blades were installed but not drawn: the mod only acts while they are actually
+  out, and the readout was not saying so clearly.
+- **F8 now names what it found.** It prints the record and item type of whatever is in your
+  hands, reports what is installed in your arms cyberware slot, and says plainly when Mantis
+  Blades are installed but not deployed.
+- Detection now also matches on the record name, not just the item type, so custom or
+  future Mantis Blade records are covered even if their item type is set to something else.
+
+---
+
+
 ## 1.0.1
 
 Fixes an animation bug: during a long combo at high attack speed, V would slash with the same

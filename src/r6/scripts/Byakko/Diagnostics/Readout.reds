@@ -36,8 +36,17 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   if !BYKEnabled() {
     return out + "Mod is switched off in settings.";
   }
-  if !BYKWorldStable(game) {
-    return out + "World is mid-transition; try again once gameplay resumes.";
+  // Name the gate that refused, rather than just saying the world is mid-transition.
+  //
+  // The old version printed only the generic line, and when a gate misfired the only way to
+  // find out which one was to read the source. Saying which check said no makes that a
+  // keypress.
+  let reason = BYKWorldStableReason(game);
+  if reason != BYKStableOk() {
+    out += s"Standing down: \(BYKStableReasonText(reason)).\n";
+    out += "If you are in normal gameplay and see this, that check is misfiring.\n";
+    out += "Please report it with this line.\n";
+    return out;
   }
   let stats = GameInstance.GetStatsSystem(game);
   let player = GetPlayer(game);
@@ -48,15 +57,28 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   // ---- The blades -------------------------------------------------------
   let weapon = BYKEquippedMantisSettled(game);
   if !IsDefined(weapon) {
+    // Say exactly what the game reports rather than just "not Mantis Blades". The common case
+    // is blades that are installed but not drawn, which looks identical to a player and reads
+    // as the mod not supporting their cyberware.
     let active = GameObject.GetActiveWeapon(player);
     if IsDefined(active) {
-      out += "Equipped weapon is not Mantis Blades.\n";
-      out += "Equip the blades and press again.\n";
+      out += s"In hand: \(BYKDescribeItem(active.GetItemID()))\n";
     } else {
-      out += "No weapon equipped. Equip Mantis Blades and press again.\n";
+      out += "In hand: nothing\n";
+    }
+    let installed = BYKInstalledMantisItem(game);
+    if ItemID.IsValid(installed) {
+      out += s"Arms cyberware: \(BYKDescribeItem(installed))\n";
+      out += "\nMantis Blades ARE installed and supported, they are just not drawn.\n";
+      out += "Deploy them and press again. The mod only acts while they are out.\n";
+    } else {
+      let arms = EquipmentSystem.GetData(player).GetActiveItem(gamedataEquipmentArea.ArmsCW);
+      out += s"Arms cyberware: \(BYKDescribeItem(arms))\n";
+      out += "\nNo Mantis Blades found in the arms slot.\n";
     }
     return out;
   }
+  out += s"Blades: \(BYKDescribeItem(weapon.GetItemID()))\n";
 
   let sid = BYKWeaponStatsId(weapon);
   let speed = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
