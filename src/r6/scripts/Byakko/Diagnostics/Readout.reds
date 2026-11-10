@@ -122,6 +122,22 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   out += s"  IgnoreStamPen   \(stats.GetStatValue(sid, gamedataStatType.CanIgnoreWeaponStaminaPenaties))\n";
   out += s"  InfiniteCombo   \(stats.GetStatValue(sid, gamedataStatType.CanWeaponInfinitlyCombo))   (1 only during a burst)\n";
 
+  // ---- Conditions the iconic effects key off -----------------------------
+  //
+  // Printed because a conditional effect that never seems to fire is otherwise impossible to
+  // tell apart from a condition that is never read as true.
+  out += "
+Conditions:
+";
+  out += "  Optical Camo    ";
+  out += BYKCamoActive(game) ? "ACTIVE" : "off";
+  out += s"   (charge \(BYKCamoCharge(game)))
+";
+  out += "  Sandevistan     ";
+  out += BYKSandevistanActive(game) ? "ACTIVE
+" : "off
+";
+
   // ---- What this mod currently has applied ------------------------------
   //
   // The leak test in the test plan compares the numbers above against a recorded baseline.

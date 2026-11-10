@@ -70,3 +70,36 @@ public func F06(game: GameInstance, sid: StatsObjectID) -> Float {
        + s.GetStatValue(sid, gamedataStatType.StrongArmsStaminaCostReduction)
        + s.GetStatValue(sid, gamedataStatType.EffectiveChargeTime);
 }
+
+// ---------------------------------------------------------------------------
+// Condition surface, added for the iconic transplant work.
+//
+// Confirmed present. The three routes to Optical Camo are kept separate so a patch that breaks
+// one is reported as breaking that one, not as "camo detection is gone".
+// ---------------------------------------------------------------------------
+
+public func G01(game: GameInstance, sid: StatsObjectID) -> Float {
+  return GameInstance.GetStatsSystem(game).GetStatValue(sid, gamedataStatType.OpticalCamoIsActive);
+}
+
+public func G02(player: ref<PlayerPuppet>) -> Bool {
+  return player.IsInvisible();
+}
+
+public func G03(player: ref<GameObject>) -> Bool {
+  return StatusEffectSystem.ObjectHasStatusEffect(player, t"BaseStatusEffect.Cloaked");
+}
+
+public func G04(game: GameInstance, sid: StatsObjectID) -> Float {
+  return GameInstance.GetStatPoolsSystem(game).GetStatPoolValue(sid, gamedataStatPoolType.OpticalCamoCharges, false);
+}
+
+public func G05(player: ref<GameObject>) -> Bool {
+  return StatusEffectSystem.ObjectHasStatusEffectWithTag(player, n"Sandevistan");
+}
+
+// Crit stats, which every conditional iconic effect needs.
+public func G06(game: GameInstance, sid: StatsObjectID) -> Float {
+  let s = GameInstance.GetStatsSystem(game);
+  return s.GetStatValue(sid, gamedataStatType.CritChance) + s.GetStatValue(sid, gamedataStatType.CritDamage);
+}
