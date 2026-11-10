@@ -28,6 +28,7 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
     // ---- Categories -----------------------------------------------------
     this.Text("Byakko-Category-General", "General");
     this.Text("Byakko-Category-Burst", "On-kill burst");
+    this.Text("Byakko-Category-Profiles", "Iconic profiles");
     this.Text("Byakko-Category-Dash", "Dash combo (Sihil)");
     this.Text("Byakko-Category-Resting", "Resting attack speed");
     this.Text("Byakko-Category-Diagnostics", "Diagnostics");
@@ -63,6 +64,23 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
       "Print a short line on screen when the window opens or refreshes. Off by default - useful while tuning, noisy in a fight.");
 
     // ---- Resting --------------------------------------------------------
+    // ---- Profiles -------------------------------------------------------
+    this.Text("Byakko-ProfilesEnabled", "Enable iconic profiles");
+    this.Text("Byakko-ProfilesEnabled-Desc",
+      "Put an iconic melee weapon's stats onto your cyberarms. Turn this off to leave your arms with only the mod's own effects.");
+
+    this.Text("Byakko-MantisProfile", "Mantis Blades profile");
+    this.Text("Byakko-MantisProfile-Desc",
+      "Which iconic's stats your Mantis Blades carry. The blade profiles are transcribed from the game's own data. The blunt ones are approximations of described effects, because no source gives their real values, and the readout tells you which is which.");
+
+    this.Text("Byakko-GorillaProfile", "Gorilla Arms profile");
+    this.Text("Byakko-GorillaProfile-Desc",
+      "Which iconic's stats your Gorilla Arms carry. Katanas are deliberately offered here too: there are only a handful of iconic blunt weapons, and the blade stats transplant perfectly well.");
+
+    this.Text("Byakko-AllowNerf", "Allow damage reductions");
+    this.Text("Byakko-AllowNerf-Desc",
+      "Some iconics carry a damage multiplier below 1.0, balanced against the rest of their kit. Satori, Errata and Cocktail Stick are all x0.9. Off by default, so picking a profile for its bleed does not quietly cost you damage. Turn on for the full transplant.");
+
     // ---- Dash window ----------------------------------------------------
     this.Text("Byakko-DashEnabled", "Combo after dashing");
     this.Text("Byakko-DashEnabled-Desc",

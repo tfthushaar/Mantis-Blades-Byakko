@@ -122,6 +122,40 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   out += s"  IgnoreStamPen   \(stats.GetStatValue(sid, gamedataStatType.CanIgnoreWeaponStaminaPenaties))\n";
   out += s"  InfiniteCombo   \(stats.GetStatValue(sid, gamedataStatType.CanWeaponInfinitlyCombo))   (1 only during a burst)\n";
 
+  // ---- The profile on this arm -------------------------------------------
+  //
+  // Names the weapon, says whether its numbers came from the game or were approximated, and
+  // says what is not included. A player comparing against a wiki deserves to know which of
+  // those they are looking at before they report a number as wrong.
+  if IsDefined(sys) {
+    let kind = BYKArmKind(weapon.GetItemID());
+    let slot = kind == BYKArmMantis() ? sys.GetMantisSlot() : sys.GetGorillaSlot();
+    out += "
+Profile: ";
+    if IsDefined(slot) && IsDefined(slot.Profile()) {
+      let prof = slot.Profile();
+      out += s"\(prof.name)
+";
+      out += s"  source     \(prof.source)
+";
+      out += s"  values     \(BYKProfileFidelityName(prof.fidelity))
+";
+      if prof.condition != BYKCondNone() {
+        out += s"  condition  \(BYKProfileConditionName(prof.condition)), currently ";
+        out += slot.ConditionApplied() ? "APPLIED
+" : "not applied
+";
+      }
+      if NotEquals(prof.note, "") {
+        out += s"  note       \(prof.note)
+";
+      }
+    } else {
+      out += "none
+";
+    }
+  }
+
   // ---- Conditions the iconic effects key off -----------------------------
   //
   // Printed because a conditional effect that never seems to fire is otherwise impossible to

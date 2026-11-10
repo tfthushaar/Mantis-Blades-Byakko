@@ -13,6 +13,32 @@
 // namespace stay "Byakko" on purpose: the folder name is what an existing install updates over,
 // and renaming it would leave players with two copies.
 
+
+// Iconic profiles the player can put on a cyberarm.
+//
+// Values are explicit and must never be renumbered. Mod Settings keeps its ini across mod
+// updates, so a number written by one version is read back by another, and renumbering would
+// silently give someone a different weapon's stats.
+enum EBYKProfile {
+  None = 0,
+  Byakko = 1,
+  Satori = 2,
+  JinchuMaru = 3,
+  Scalpel = 4,
+  Tsumetogi = 5,
+  CocktailStick = 6,
+  Errata = 7,
+  BlackUnicorn = 8,
+  Gwynbleidd = 9,
+  Sihil = 10,
+  GoldPlatedBat = 11,
+  SasquatchHammer = 12,
+  TinkerBell = 13,
+  CaretakersSpade = 14,
+  Cottonmouth = 15,
+  MurphysLaw = 16,
+}
+
 enum EBYKLogLevel {
   Off = 0,
   Info = 1,
@@ -26,6 +52,31 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.displayName", "Byakko-Enabled")
   @runtimeProperty("ModSettings.description", "Byakko-Enabled-Desc")
   public let enabled: Bool = true;
+
+  // ---- Iconic profiles ---------------------------------------------------
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-ProfilesEnabled")
+  @runtimeProperty("ModSettings.description", "Byakko-ProfilesEnabled-Desc")
+  public let profilesEnabled: Bool = true;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-MantisProfile")
+  @runtimeProperty("ModSettings.description", "Byakko-MantisProfile-Desc")
+  public let mantisProfile: EBYKProfile = EBYKProfile.Byakko;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-GorillaProfile")
+  @runtimeProperty("ModSettings.description", "Byakko-GorillaProfile-Desc")
+  public let gorillaProfile: EBYKProfile = EBYKProfile.None;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-AllowNerf")
+  @runtimeProperty("ModSettings.description", "Byakko-AllowNerf-Desc")
+  public let allowDamageReduction: Bool = false;
 
   // ---- The on-kill window -----------------------------------------------
   @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")

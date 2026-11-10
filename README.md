@@ -19,6 +19,17 @@ are installing.
 
 ## What it does
 
+**Pick an iconic melee weapon's stats for each cyberarm.** Sixteen profiles in the settings
+menu: nine iconic blades, six iconic blunt weapons, and Sihil. Blades for Mantis Blades, blades
+or blunt for Gorilla Arms.
+
+Three of them carry a conditional effect that comes and goes in play: Scalpel while a
+Sandevistan runs, Jinchu-Maru and Cocktail Stick while Optical Camo is up.
+
+The blade profiles are transcribed from the game's own data. The blunt ones are approximations,
+because no source gives their real modifiers, and F8 tells you which kind you have.
+
+
 **Always, while the blades are equipped**
 
 | | |
@@ -176,6 +187,15 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Remove light combo pause | on | The other half of the Byakko's iconic, and the part you feel most. |
 | Also buff V, not just the blades | on | See the note below. |
 | Show a message on burst | off | Handy while tuning, noisy in a fight. |
+
+**Iconic profiles**
+
+| Setting | Default | |
+|---|---|---|
+| Enable iconic profiles | on | |
+| Mantis Blades profile | Byakko | So an existing install does not change behaviour on update. |
+| Gorilla Arms profile | none | |
+| Allow damage reductions | off | Some iconics carry a x0.9 damage multiplier. Off so a profile picked for its bleed does not quietly cost you damage. |
 
 **Dash combo (Sihil)**
 

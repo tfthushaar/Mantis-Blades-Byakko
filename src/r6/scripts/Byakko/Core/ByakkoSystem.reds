@@ -12,6 +12,8 @@ public class ByakkoSystem extends ScriptableSystem {
   private let m_burst: ref<BYKBurstState>;
   private let m_baseline: ref<BYKBaselineState>;
   private let m_dash: ref<BYKDashWindow>;
+  private let m_mantisSlot: ref<BYKProfileSlot>;
+  private let m_gorillaSlot: ref<BYKProfileSlot>;
 
   private let m_playerAttachCbId: Uint32;
   private let m_callbacksRegistered: Bool;
@@ -58,6 +60,10 @@ public class ByakkoSystem extends ScriptableSystem {
     this.m_burst = new BYKBurstState();
     this.m_baseline = new BYKBaselineState();
     this.m_dash = new BYKDashWindow();
+    this.m_mantisSlot = new BYKProfileSlot();
+    this.m_mantisSlot.Init(BYKArmMantis());
+    this.m_gorillaSlot = new BYKProfileSlot();
+    this.m_gorillaSlot.Init(BYKArmGorilla());
     this.RegisterPlayerAttach();
     // Register the diagnostic key and start a tick here as well as at session start. If the
     // player-attached callback is ever missed, this chain is the one that keeps retrying the
@@ -110,6 +116,12 @@ public class ByakkoSystem extends ScriptableSystem {
     }
     if IsDefined(this.m_dash) {
       this.m_dash.Forget();
+    }
+    if IsDefined(this.m_mantisSlot) {
+      this.m_mantisSlot.Forget();
+    }
+    if IsDefined(this.m_gorillaSlot) {
+      this.m_gorillaSlot.Forget();
     }
     // The blackboard this was registered on is gone, so the handle is stale. Drop it without
     // unregistering and register again below, rather than calling into a replaced object.
@@ -251,6 +263,12 @@ public class ByakkoSystem extends ScriptableSystem {
     if IsDefined(this.m_dash) {
       this.m_dash.Forget();
     }
+    if IsDefined(this.m_mantisSlot) {
+      this.m_mantisSlot.Forget();
+    }
+    if IsDefined(this.m_gorillaSlot) {
+      this.m_gorillaSlot.Forget();
+    }
     this.ReleaseLocomotionListener();
     BYKLog.Verbose(n"Core", "Detaching.");
   }
@@ -332,9 +350,88 @@ public class ByakkoSystem extends ScriptableSystem {
     if IsDefined(this.m_dash) && this.m_dash.Tick(game) {
       live = true;
     }
+
+    // A conditional profile needs watching at this cadence rather than the slow one: a
+    // Sandevistan is over in seconds. Only a profile that actually has a condition, and is
+    // actually on an arm, keeps this chain alive.
+    if this.TickConditions(game) {
+      live = true;
+    }
+
     if live {
       this.ScheduleBurstTick();
     }
+  }
+
+  // ---- Profiles ---------------------------------------------------------
+
+  // Keep each arm's profile matching what the settings say and what is in hand.
+  //
+  // Idempotent and cheap when nothing has changed, which is what makes it safe to call from
+  // the slow tick rather than needing a settings-change hook.
+  private func SyncProfiles(game: GameInstance) -> Void {
+    if !IsDefined(this.m_mantisSlot) || !IsDefined(this.m_gorillaSlot) {
+      return;
+    }
+    if !BYKEnabled() {
+      this.m_mantisSlot.Clear(game);
+      this.m_gorillaSlot.Clear(game);
+      return;
+    }
+    let weapon = BYKEquippedArmSettled(game);
+    let kind = BYKArmNone();
+    if IsDefined(weapon) {
+      kind = BYKArmKind(weapon.GetItemID());
+    }
+    // Each slot only ever sees the weapon when that weapon is its own kind of arm. The other
+    // slot is told there is nothing in hand, so it drops its handles rather than trying to
+    // apply Gorilla stats to Mantis Blades.
+    let mantisWeapon = kind == BYKArmMantis() ? weapon : null;
+    let gorillaWeapon = kind == BYKArmGorilla() ? weapon : null;
+    this.m_mantisSlot.Sync(game, mantisWeapon, BYKWantedProfileId(BYKArmMantis()));
+    this.m_gorillaSlot.Sync(game, gorillaWeapon, BYKWantedProfileId(BYKArmGorilla()));
+
+    // A conditional profile that has just been applied needs the fast chain running.
+    if this.m_mantisSlot.WantsTick() || this.m_gorillaSlot.WantsTick() {
+      this.ScheduleBurstTick();
+    }
+  }
+
+  // Apply or remove the conditional half of whichever profile is in hand. Returns whether
+  // anything still wants this chain to keep running.
+  private func TickConditions(game: GameInstance) -> Bool {
+    if !IsDefined(this.m_mantisSlot) || !IsDefined(this.m_gorillaSlot) {
+      return false;
+    }
+    if !this.m_mantisSlot.WantsTick() && !this.m_gorillaSlot.WantsTick() {
+      return false;
+    }
+    // Reading equipment and stats, so the same gate as everywhere else. Returning true keeps
+    // the chain alive across a transition instead of dropping it.
+    if !BYKWorldStable(game) {
+      return true;
+    }
+    let weapon = BYKEquippedArmSettled(game);
+    if !IsDefined(weapon) {
+      return false;
+    }
+    let kind = BYKArmKind(weapon.GetItemID());
+    if kind == BYKArmMantis() {
+      this.m_mantisSlot.SyncCondition(game, weapon);
+    } else {
+      if kind == BYKArmGorilla() {
+        this.m_gorillaSlot.SyncCondition(game, weapon);
+      }
+    }
+    return true;
+  }
+
+  public func GetMantisSlot() -> ref<BYKProfileSlot> {
+    return this.m_mantisSlot;
+  }
+
+  public func GetGorillaSlot() -> ref<BYKProfileSlot> {
+    return this.m_gorillaSlot;
   }
 
   // ---- Baseline tick ----------------------------------------------------
@@ -387,6 +484,8 @@ public class ByakkoSystem extends ScriptableSystem {
       this.ScheduleSlowTick();
       return;
     }
+
+    this.SyncProfiles(game);
 
     if BYKBaselineEvaluate(game, this.m_baseline, this.m_burst) {
       this.m_idleTicks = 0;

@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.2.0
+
+**Pick which iconic melee weapon's stats go on your cyberarms.** Sixteen profiles, chosen per
+arm in the settings menu.
+
+Blades on Mantis Blades, and blades or blunt on Gorilla Arms. Katanas are deliberately offered
+for Gorilla Arms too: there are only a handful of iconic blunt weapons, and the blade stats
+transplant perfectly well.
+
+Three profiles bring a conditional effect, applied and removed as the condition flips:
+
+* **Scalpel**, crit chance and bleed while a Sandevistan is running.
+* **Jinchu-Maru**, guaranteed crits and the leap while Optical Camo is active.
+* **Cocktail Stick**, bleed while Optical Camo is active, which is how the original works.
+
+**The readout tells you where each profile's numbers came from.** The blade profiles are
+transcribed from the game's own data. The blunt ones are approximations, because no source
+gives their real modifiers, and the displayed percentages on wikis cannot be transplanted: they
+are the underlying rate after the weapon's tier scaling, so Byakko and Satori show +30% and +17%
+bleed from the identical modifier. Press F8 and the profile section says which kind you have,
+along with what the profile does not include.
+
+**Damage reductions are off by default.** Satori, Errata and Cocktail Stick genuinely carry a
+x0.9 damage multiplier, balanced against the rest of their kit. Transplanted onto a cyberarm by
+someone who picked the profile for its bleed, that is a nerf they did not ask for. There is a
+setting if you want the full transplant.
+
+Your existing behaviour is unchanged on update: the Mantis profile defaults to Byakko, and
+Gorilla Arms default to none.
+
+---
+
+
 ## 1.1.0
 
 Adds Sihil's dash combo, and it works on Gorilla Arms as well as Mantis Blades.
