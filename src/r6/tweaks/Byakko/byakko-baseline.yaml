@@ -15,15 +15,23 @@
 # ---------------------------------------------------------------------------
 # Byakko's actual iconic effects
 #
-# Verified tweaks on Items.Preset_Katana_Wakako: Range additive 1, CanMeleeLeap additive 1,
-# BleedingApplicationRate additive 10. The reach stat on the installed game is
-# EffectiveRange - there is no BaseStats.Range record - so that is what +1m goes on.
+# Reach is BaseStats.Range, and armour penetration is BaseStats.CanWeaponIgnoreArmor.
+#
+# Both were wrong until 1.4.0, and wrong in a way nothing could catch: EffectiveRange and
+# ArmorPenetrationBonus are real stat types, so every compile passed, but no melee weapon in
+# the game uses either. Reading the real records settled it. A Mantis Blade carries
+# Range = 2.0 and CanWeaponIgnoreArmor = 0.25 natively, and the mod's old modifiers sat beside
+# them on stats nothing reads, which is why the reach and armour penetration were never felt.
+#
+# The earlier comment here claimed there is no BaseStats.Range record. That was never
+# supported: the string pool holds no BaseStats.* names at all, so it could not show either
+# way, and the game has since disproved it.
 # ---------------------------------------------------------------------------
 
 Byakko.Mod_Reach:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
-  statType: BaseStats.EffectiveRange
+  statType: BaseStats.Range
   value: 1.0
 
 Byakko.Mod_Leap:
@@ -64,7 +72,7 @@ Byakko.Mod_IgnoreStaminaPenalty:
 Byakko.Mod_ArmorPen:
   $type: gamedataConstantStatModifier_Record
   modifierType: Additive
-  statType: BaseStats.ArmorPenetrationBonus
+  statType: BaseStats.CanWeaponIgnoreArmor
   value: 0.25
 
 # ---------------------------------------------------------------------------

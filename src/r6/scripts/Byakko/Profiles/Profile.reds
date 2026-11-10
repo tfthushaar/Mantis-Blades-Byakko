@@ -117,7 +117,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
 
   if id == EnumInt(EBYKProfile.Byakko) {
     p = BYKNewProfile(id, "Byakko", "Items.Preset_Katana_Wakako", BYKFamilyBlade(), BYKFidelityTranscribed());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.EffectiveRange, 1.0));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.Range, 1.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanMeleeLeap, 1.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanMeleeLeapInAir, 1.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 10.0));
@@ -196,7 +196,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     // the ripper can replace these.
     p = BYKNewProfile(id, "Sihil", "Items.Preset_Sword_Sihil", BYKFamilyBlade(), BYKFidelityAuthored());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 8.0));
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     // Sihil's actual effect: unlimited combo attacks for a while after dashing.
     p.dashWindowSeconds = 5.0;
     ArrayPush(p.dashWindowMods, BYKAdd(gamedataStatType.CanWeaponInfinitlyCombo, 1.0));
@@ -209,7 +209,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     // transplanted is its behaviour, not its weapon class. Authored: the modding table has no
     // stat rows for any knife.
     p = BYKNewProfile(id, "Butcher's Cleaver", "Items.Preset_Butchers_Knife_Iconic", BYKFamilyBlade(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 14.0));
     // The original attacks faster and uses less stamina while the enemy is bleeding. "Is the
     // target bleeding" is not state this mod tracks, and with a bleed rate this high a kill is
@@ -230,35 +230,35 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
 
   if id == EnumInt(EBYKProfile.GoldPlatedBat) {
     p = BYKNewProfile(id, "Gold-Plated Baseball Bat", "Items.Preset_Baseball_Bat_Denny", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 12.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 10.0));
     return p;
   }
   if id == EnumInt(EBYKProfile.SasquatchHammer) {
     p = BYKNewProfile(id, "Sasquatch's Hammer", "Items.w_melee_boss_hammer", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.75));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.75));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 8.0));
     p.note = "The original trades stamina for damage. Only the armour penetration and stun carry over.";
     return p;
   }
   if id == EnumInt(EBYKProfile.TinkerBell) {
     p = BYKNewProfile(id, "Tinker Bell", "Items.sq021_peter_pan_baton", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.5));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.5));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 8.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.ElectrocutedApplicationRate, 12.0));
     return p;
   }
   if id == EnumInt(EBYKProfile.CaretakersSpade) {
     p = BYKNewProfile(id, "Caretaker's Spade", "Items.Preset_Shovel_Caretaker", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 10.0));
     p.note = "Health return on kills not included.";
     return p;
   }
   if id == EnumInt(EBYKProfile.Cottonmouth) {
     p = BYKNewProfile(id, "Cottonmouth", "Items.Preset_Cane_Fingers", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 6.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.ElectrocutedApplicationRate, 8.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.PoisonedApplicationRate, 8.0));
@@ -266,7 +266,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
   }
   if id == EnumInt(EBYKProfile.MurphysLaw) {
     p = BYKNewProfile(id, "Murphy's Law", "Items.Preset_Baton_Murphy", BYKFamilyBlunt(), BYKFidelityAuthored());
-    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.5));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.5));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 6.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 6.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.ElectrocutedApplicationRate, 6.0));

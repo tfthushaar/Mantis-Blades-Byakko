@@ -4,7 +4,13 @@
 // the Byakko already does on a kill: a timed window carrying `CanWeaponInfinitlyCombo`. Only the
 // trigger differs, so this is the same machinery with a different way in.
 //
-// Applies to both cyberarms. Nothing about an infinite-combo flag is specific to blades.
+// Applies to both cyberarms, but it is worth knowing what it does on each.
+//
+// Mantis Blades do not have an infinite combo, so the window is a real change there. Gorilla
+// Arms already ship with CanWeaponInfinitlyCombo = 1 and CanWeaponDash = 1 in their own record,
+// read straight out of the game, so the combo flag is redundant on them and only the optional
+// attack speed does anything. That is not a bug, and the readout says which case applies rather
+// than leaving a player to wonder why the same setting feels different on the two arms.
 //
 // ---------------------------------------------------------------------------
 // Catching the dash

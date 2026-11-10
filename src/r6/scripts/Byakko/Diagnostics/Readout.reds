@@ -196,6 +196,12 @@ Conditions:
     } else {
       out += "Dash combo idle. Dash or dodge with a cyberarm out.\n";
     }
+    // Gorilla Arms carry CanWeaponInfinitlyCombo and CanWeaponDash in their own record, so the
+    // combo flag is redundant on them. Said here rather than leaving a player to wonder why the
+    // same setting feels different on the two arms.
+    if BYKArmKind(weapon.GetItemID()) == BYKArmGorilla() {
+      out += "  Gorilla Arms already combo infinitely, so the window only adds speed there.\n";
+    }
   }
 
   return out;

@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.4.0
+
+**The reach and armour penetration bonuses were doing nothing, in every version since the
+first. They work now.**
+
+Reading the real item records out of the game settled what no amount of checking stat names
+could: melee weapons use `Range` for reach and `CanWeaponIgnoreArmor` for armour penetration.
+This mod was setting `EffectiveRange` and `ArmorPenetrationBonus`, which are real stats that no
+weapon in the game reads.
+
+The proof is visible in a Mantis Blade's own record, which carries `Range = 2.0` and
+`CanWeaponIgnoreArmor = 0.25`, with the mod's old modifiers sitting beside them on stats
+nothing looks at. Nothing could have caught this earlier: both names are valid, so every build
+passed and the diagnostic read them back correctly. They were simply the wrong stats.
+
+If the +1m reach and +25% armour penetration never felt like they did anything, that is
+because they did not.
+
+**Gorilla Arms already combo infinitely.** Their own record carries
+`CanWeaponInfinitlyCombo = 1` and `CanWeaponDash = 1`, so the dash window's combo flag was
+redundant on them from the day it shipped and only its optional attack speed did anything.
+Not harmful, but it meant the same setting felt completely different on the two arms with no
+explanation. F8 now says so.
+
+---
+
+
 ## 1.3.0
 
 **Profiles now carry their weapon's speed and combo effects**, which several iconics are

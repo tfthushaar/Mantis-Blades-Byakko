@@ -103,3 +103,51 @@ public func G06(game: GameInstance, sid: StatsObjectID) -> Float {
   let s = GameInstance.GetStatsSystem(game);
   return s.GetStatValue(sid, gamedataStatType.CritChance) + s.GetStatValue(sid, gamedataStatType.CritDamage);
 }
+
+// ---------------------------------------------------------------------------
+// The iconic ability layer.
+//
+// This is where an iconic's actual behaviour lives, as opposed to its weapon class's stats.
+// An item record's OnAttach carries gameplay logic packages; each package carries stat
+// modifiers and effectors, and a whole package can be applied to another object, which is how
+// a real iconic ability reaches a cyberarm instead of being reimplemented by hand.
+//
+// Signatures confirmed by probe, and they are not obvious:
+//   ApplyPackage  takes THREE arguments, target and instigator both wref<GameObject>
+//   RemovePackage takes TWO, a wref<GameObject> and the id
+//
+// Probed and absent, so nothing may depend on them: GameplayLogicPackage_Record.Abilities and
+// .StatusEffects and .StatGroups; RPGManager.ApplyGameplayLogicPackage;
+// GameInstance.GetPlayerDevelopmentSystem; GameObject.AddAbility; StatsSystem.AddAbility;
+// WeaponItem_Record.Attachments and .DefaultItems; Item_Record.IsIconic and .Abilities.
+// ---------------------------------------------------------------------------
+
+public func H01(r: ref<Item_Record>) -> Int32 {
+  let pkgs: array<wref<GameplayLogicPackage_Record>>;
+  r.OnAttach(pkgs);
+  return ArraySize(pkgs);
+}
+
+public func H02(p: ref<GameplayLogicPackage_Record>) -> Int32 {
+  let mods: array<wref<StatModifier_Record>>;
+  p.Stats(mods);
+  return ArraySize(mods);
+}
+
+public func H03(p: ref<GameplayLogicPackage_Record>) -> Int32 {
+  let effs: array<wref<Effector_Record>>;
+  p.Effectors(effs);
+  return ArraySize(effs);
+}
+
+public func H04(e: ref<Effector_Record>) -> CName {
+  return e.EffectorClassName();
+}
+
+public func H05(game: GameInstance, target: ref<GameObject>, instigator: ref<GameObject>, pkg: TweakDBID) -> Void {
+  GameInstance.GetGameplayLogicPackageSystem(game).ApplyPackage(target, instigator, pkg);
+}
+
+public func H06(game: GameInstance, target: ref<GameObject>, pkg: TweakDBID) -> Void {
+  GameInstance.GetGameplayLogicPackageSystem(game).RemovePackage(target, pkg);
+}
