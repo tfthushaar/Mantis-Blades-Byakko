@@ -75,6 +75,12 @@ public class ByakkoSettings {
 
   @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-Transplant")
+  @runtimeProperty("ModSettings.description", "Byakko-Transplant-Desc")
+  public let transplantAbilities: Bool = false;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
   @runtimeProperty("ModSettings.displayName", "Byakko-AllowNerf")
   @runtimeProperty("ModSettings.description", "Byakko-AllowNerf-Desc")
   public let allowDamageReduction: Bool = false;

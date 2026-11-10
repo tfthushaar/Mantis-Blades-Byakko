@@ -203,6 +203,7 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Setting | Default | |
 |---|---|---|
 | Enable iconic profiles | on | |
+| Transplant real iconic abilities | off | Hands your arm the iconic's actual ability package instead of an imitation. Only Sihil, Gwynbleidd and Sasquatch's Hammer carry one. Off by default because a package's contents cannot be read from script. |
 | Mantis Blades profile | Byakko | So an existing install does not change behaviour on update. |
 | Gorilla Arms profile | none | |
 | Allow damage reductions | off | Some iconics carry a x0.9 damage multiplier. Off so a profile picked for its bleed does not quietly cost you damage. |

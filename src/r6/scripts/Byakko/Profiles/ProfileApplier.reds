@@ -25,11 +25,13 @@ public class BYKProfileSlot {
   private let m_cond: ref<BYKModSet>;
   private let m_condOn: Bool;               // are the conditional mods currently applied
   private let m_profile: ref<BYKProfile>;
+  private let m_pkgs: ref<BYKPackageSet>;   // real ability packages, when the profile has any
 
   public func Init(armKind: Int32) -> Void {
     this.m_armKind = armKind;
     this.m_base = new BYKModSet();
     this.m_cond = new BYKModSet();
+    this.m_pkgs = new BYKPackageSet();
   }
 
   public func ArmKind() -> Int32 {
@@ -46,6 +48,10 @@ public class BYKProfileSlot {
 
   public func ConditionApplied() -> Bool {
     return this.m_condOn;
+  }
+
+  public func PackageCount() -> Int32 {
+    return IsDefined(this.m_pkgs) ? this.m_pkgs.Count() : 0;
   }
 
   public func IsApplied() -> Bool {
@@ -107,7 +113,26 @@ public class BYKProfileSlot {
     }
     this.m_profile = profile;
     this.m_profileId = wantedId;
-    BYKLog.Info(n"Profile", s"\(BYKArmKindName(this.m_armKind)): \(profile.name), \(applied) stat(s).");
+
+    // The real ability packages, if this iconic has any and the player opted in.
+    //
+    // Applied to V rather than to the weapon, because that is where an ability lives, and
+    // tracked separately so it comes off on exactly the same boundaries as the stats.
+    if BYKProfileHasPackages(profile) && BYKPackagesEnabled() {
+      let player = GetPlayer(game);
+      if IsDefined(player) {
+        for name in profile.packages {
+          let pid = TDBID.Create(name);
+          if TDBID.IsValid(pid) {
+            this.m_pkgs.Add(game, player, pid);
+          } else {
+            BYKLog.Warn(n"Pkg", s"Profile named a package that does not resolve: \(name)");
+          }
+        }
+      }
+    }
+
+    BYKLog.Info(n"Profile", s"\(BYKArmKindName(this.m_armKind)): \(profile.name), \(applied) stat(s), \(this.PackageCount()) package(s).");
   }
 
   // Apply or remove the conditional half as the condition flips. Called from the tick, and only
@@ -147,6 +172,9 @@ public class BYKProfileSlot {
 
   // Only safe while the world is stable.
   public func Clear(game: GameInstance) -> Void {
+    if IsDefined(this.m_pkgs) {
+      this.m_pkgs.Clear(game);
+    }
     this.m_cond.Clear(game);
     this.m_base.Clear(game);
     this.m_condOn = false;
@@ -156,6 +184,9 @@ public class BYKProfileSlot {
 
   // Drop handles with no native calls, for loads, respawns and teardown.
   public func Forget() -> Void {
+    if IsDefined(this.m_pkgs) {
+      this.m_pkgs.Forget();
+    }
     if IsDefined(this.m_cond) {
       this.m_cond.Forget();
     }

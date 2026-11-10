@@ -146,6 +146,19 @@ Profile: ";
 " : "not applied
 ";
       }
+      let pkgN = slot.PackageCount();
+      if pkgN > 0 {
+        out += s"  abilities  \(pkgN) real package(s) transplanted
+";
+      } else {
+        if BYKProfileHasPackages(prof) {
+          out += "  abilities  this iconic HAS a real package, transplanting is off
+";
+        } else {
+          out += "  abilities  no transplantable package; effects are reimplemented
+";
+        }
+      }
       if NotEquals(prof.note, "") {
         out += s"  note       \(prof.note)
 ";

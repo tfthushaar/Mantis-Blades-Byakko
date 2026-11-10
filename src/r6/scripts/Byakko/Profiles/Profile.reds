@@ -80,7 +80,15 @@ public class BYKProfile {
   public let dashWindowSeconds: Float;
   public let dashWindowMods: array<ref<BYKStatMod>>;
 
+  // Gameplay logic packages this iconic actually carries, applied wholesale rather than
+  // reimplemented. Only three weapons in the game have one; see Profiles/PackageSet.reds.
+  public let packages: array<String>;
+
   public let note: String;                  // what is not included, shown by the diagnostic
+}
+
+public func BYKProfileHasPackages(p: ref<BYKProfile>) -> Bool {
+  return IsDefined(p) && ArraySize(p.packages) > 0;
 }
 
 public func BYKProfileHasKillWindow(p: ref<BYKProfile>) -> Bool {
@@ -187,7 +195,8 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
   if id == EnumInt(EBYKProfile.Gwynbleidd) {
     p = BYKNewProfile(id, "Gwynbleidd", "Items.Preset_Sword_Witcher", BYKFamilyBlade(), BYKFidelityTranscribed());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BonusDamageAgainstBosses, 10.0));
-    p.note = "Kill-streak and low-health crit behaviour not included.";
+    ArrayPush(p.packages, "Items.Preset_Sword_Witcher_inline0");
+    p.note = "Carries its own ability package, which can be transplanted. The kill-streak crit is in there rather than reimplemented.";
     return p;
   }
   if id == EnumInt(EBYKProfile.Sihil) {
@@ -200,7 +209,10 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     // Sihil's actual effect: unlimited combo attacks for a while after dashing.
     p.dashWindowSeconds = 5.0;
     ArrayPush(p.dashWindowMods, BYKAdd(gamedataStatType.CanWeaponInfinitlyCombo, 1.0));
-    p.note = "Dashing opens a combo window, which is Sihil's signature.";
+    // Sihil is one of only three melee iconics that carries its own gameplay logic package, so
+    // its real effect can be transplanted rather than approximated. Read out of the game.
+    ArrayPush(p.packages, "Items.Preset_Sword_Sihil_inline0");
+    p.note = "Dashing opens a combo window. Carries its own ability package, which can be transplanted.";
     return p;
   }
 
@@ -239,7 +251,10 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     p = BYKNewProfile(id, "Sasquatch's Hammer", "Items.w_melee_boss_hammer", BYKFamilyBlunt(), BYKFidelityAuthored());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.75));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.StunApplicationRate, 8.0));
-    p.note = "The original trades stamina for damage. Only the armour penetration and stun carry over.";
+    // The hammer has its own holding package. It is the heavy, slow, stamina-hungry profile the
+    // weapon is known for, so transplanting it is the point rather than a side effect.
+    ArrayPush(p.packages, "GLP.HoldingSasquatchHammer");
+    p.note = "Carries its own holding package, which can be transplanted: heavy, slow, stamina-hungry.";
     return p;
   }
   if id == EnumInt(EBYKProfile.TinkerBell) {

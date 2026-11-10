@@ -77,6 +77,10 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
     this.Text("Byakko-GorillaProfile-Desc",
       "Which iconic's stats your Gorilla Arms carry. Katanas are deliberately offered here too: there are only a handful of iconic blunt weapons, and the blade stats transplant perfectly well.");
 
+    this.Text("Byakko-Transplant", "Transplant real iconic abilities");
+    this.Text("Byakko-Transplant-Desc",
+      "Hands your cyberarm the iconic's actual ability package instead of an imitation of it. Only three melee iconics in the game carry one: Sihil, Gwynbleidd and Sasquatch's Hammer. Off by default, because a package's contents cannot be read from script, so this is the one part of the mod that applies something it cannot fully inspect. It is removed when you put the arm away, change profile, or load a save.");
+
     this.Text("Byakko-AllowNerf", "Allow damage reductions");
     this.Text("Byakko-AllowNerf-Desc",
       "Some iconics carry a damage multiplier below 1.0, balanced against the rest of their kit. Satori, Errata and Cocktail Stick are all x0.9. Off by default, so picking a profile for its bleed does not quietly cost you damage. Turn on for the full transplant.");

@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.5.0
+
+**Real iconic abilities, transplanted rather than imitated.** New setting, off by default.
+
+The game applies a gameplay logic package to you when you equip an iconic. This hands that same
+package to your cyberarm, so you get the weapon's actual ability rather than this mod's
+reconstruction of it.
+
+It only works for three melee iconics, and that is a fact about the game rather than a
+limitation here. Reading every iconic melee record showed that most carry no weapon-specific
+package at all: all eight katana iconics attach only the generic "a melee weapon is in your
+hands" package, and their stat modifiers are byte-identical to each other. Whatever separates
+Byakko from Satori is not reachable through any accessor the scripting layer exposes. The three
+that do carry their own are **Sihil**, **Gwynbleidd** and **Sasquatch's Hammer**.
+
+For every other profile the reimplemented effects are still the only honest option, and F8 now
+says which case you are looking at: a real package transplanted, a real package available but
+switched off, or no package to transplant.
+
+**Why it is off by default.** Every other effect in this mod is a stat modifier: it has a
+handle, it comes off, and the worst case is a wrong number. A package's contents cannot be read
+from script, so this is the one feature that applies something it cannot fully inspect. It is
+removed when you put the arm away, change profile, or load a save, and it is opt-in so the rest
+of the mod can be used without it.
+
+---
+
+
 ## 1.4.0
 
 **The reach and armour penetration bonuses were doing nothing, in every version since the
