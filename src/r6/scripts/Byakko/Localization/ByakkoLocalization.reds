@@ -71,7 +71,7 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
 
     this.Text("Byakko-MantisProfile", "Mantis Blades profile");
     this.Text("Byakko-MantisProfile-Desc",
-      "Which iconic's stats your Mantis Blades carry. The blade profiles are transcribed from the game's own data. The blunt ones are approximations of described effects, because no source gives their real values, and the readout tells you which is which.");
+      "Which iconic your Mantis Blades become. You get that weapon's real ability, read out of your own game. Stats come from the game too where there are any to read, and from a table built into the mod where there are not. Press F8 to see which of the two you have.");
 
     this.Text("Byakko-GorillaProfile", "Gorilla Arms profile");
     this.Text("Byakko-GorillaProfile-Desc",
@@ -112,7 +112,7 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
 
     this.Text("Byakko-SpeedCeiling", "Animation ceiling");
     this.Text("Byakko-SpeedCeiling-Desc",
-      "Highest attack speed the blades will be pushed to, by the resting lift and the burst together. Mantis Blade light attacks alternate arms through a chain held in the animation graph, and push the speed far enough past it and the chain stops advancing, so V slashes with the same arm over and over. Vanilla clamps melee attack speed to 2.0 for what is probably this reason; a cap-raising mod removes that clamp, which is why this exists. The default of 2.2 takes most of the headroom while staying clear of where the problem was reported. If same-arm slashing turns up, bring this down. Set to 0 to switch the limiting off entirely.");
+      "Highest attack speed either cyberarm will be pushed to, by the resting lift and the burst together. Mantis Blade light attacks alternate arms through a chain held in the animation graph, and push the speed far enough past it and the chain stops advancing, so V slashes with the same arm over and over. Vanilla clamps melee attack speed to 2.0 for what is probably this reason; a cap-raising mod removes that clamp, which is why this exists. The default of 2.2 takes most of the headroom while staying clear of where the problem was reported. If same-arm slashing turns up, bring this down. Set to 0 to switch the limiting off entirely.");
 
     // ---- Diagnostics ----------------------------------------------------
     this.Text("Byakko-DiagEnabled", "Enable diagnostic key");

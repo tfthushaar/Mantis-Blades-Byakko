@@ -54,27 +54,33 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
     return out + "Stats system or player not available.";
   }
 
-  // ---- The blades -------------------------------------------------------
-  let weapon = BYKEquippedMantisSettled(game);
+  // ---- The arm in hand --------------------------------------------------
+  //
+  // Either cyberarm. This used the Mantis-only lookup, so with Gorilla Arms deployed it fell
+  // straight through to "No Mantis Blades found in the arms slot" and reported nothing at all,
+  // while the mod was in fact running profiles, abilities and both timed windows on them. A
+  // diagnostic that denies a working feature is worse than no diagnostic, and this is the
+  // second time that exact shape of bug has shipped here.
+  let weapon = BYKEquippedArmSettled(game);
   if !IsDefined(weapon) {
-    // Say exactly what the game reports rather than just "not Mantis Blades". The common case
-    // is blades that are installed but not drawn, which looks identical to a player and reads
-    // as the mod not supporting their cyberware.
+    // Say exactly what the game reports. The common case is an arm installed but not drawn,
+    // which looks identical to a player and reads as the mod not supporting their cyberware.
     let active = GameObject.GetActiveWeapon(player);
     if IsDefined(active) {
       out += s"In hand: \(BYKDescribeItem(active.GetItemID()))\n";
     } else {
       out += "In hand: nothing\n";
     }
-    let installed = BYKInstalledMantisItem(game);
+    let installed = BYKInstalledArmItem(game);
     if ItemID.IsValid(installed) {
+      let kindName = BYKArmKindName(BYKArmKind(installed));
       out += s"Arms cyberware: \(BYKDescribeItem(installed))\n";
-      out += "\nMantis Blades ARE installed and supported, they are just not drawn.\n";
+      out += s"\n\(kindName) ARE installed and supported, they are just not drawn.\n";
       out += "Deploy them and press again. The mod only acts while they are out.\n";
     } else {
       let arms = EquipmentSystem.GetData(player).GetActiveItem(gamedataEquipmentArea.ArmsCW);
       out += s"Arms cyberware: \(BYKDescribeItem(arms))\n";
-      out += "\nNo Mantis Blades found in the arms slot.\n";
+      out += "\nNo Mantis Blades or Gorilla Arms found in the arms slot.\n";
     }
     return out;
   }
@@ -85,8 +91,8 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   let perSec = stats.GetStatValue(sid, gamedataStatType.AttacksPerSecond);
   let pSpeed = stats.GetStatValue(Cast<StatsObjectID>(player.GetEntityID()), gamedataStatType.AttackSpeed);
 
-  out += s"Blades AttackSpeed:     \(speed)\n";
-  out += s"Blades AttacksPerSecond: \(perSec)   (what the inventory shows)\n";
+  out += s"Arm AttackSpeed:        \(speed)\n";
+  out += s"Arm AttacksPerSecond:   \(perSec)   (what the inventory shows)\n";
   out += s"Player AttackSpeed:     \(pSpeed)\n";
 
   // Trap 2. Report it rather than trying to be clever about it: the cap is enforced by the
@@ -111,10 +117,19 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
 
   // ---- Did the data layer land? -----------------------------------------
   //
-  // Every line below is a stat the YAML is supposed to have moved. If one reads 0 while the
-  // blades are equipped, the data layer did not apply - a TweakXL load error, or another mod
-  // replacing the same array - and that is worth knowing before blaming the feel.
+  // Every line below is a stat the YAML is supposed to have moved. If one reads 0 with Mantis
+  // Blades equipped, the data layer did not apply: a TweakXL load error, or another mod
+  // replacing the same array. Worth knowing before blaming the feel.
+  //
+  // Said out loud for Gorilla Arms, because the YAML only appends to the 41 Mantis Blade
+  // records and touches no Gorilla record at all. Everything Gorilla Arms get is applied at
+  // runtime by the profile system, so these lines reading 0 there is correct and expected. The
+  // readout now says so, since an unexplained column of zeroes is exactly how someone concludes
+  // a working mod is broken.
   out += "\nData layer (byakko-baseline.yaml):\n";
+  if BYKArmKind(weapon.GetItemID()) == BYKArmGorilla() {
+    out += "  Mantis Blades only. Zeroes below are expected on Gorilla Arms.\n";
+  }
   // Range and CanWeaponIgnoreArmor, not EffectiveRange and ArmorPenetrationBonus. Those two are
   // real stat types that no melee weapon reads, which is why the mod's reach and armour
   // penetration did nothing from 0.1.0 to 1.4.0 while every compile passed. This readout kept
@@ -209,12 +224,26 @@ Conditions:
       out += "\nResting lift applied: ";
       out += baseline.IsApplied() ? "yes\n" : "no\n";
     }
+    // Headroom, printed because a burst that reports itself armed while giving nothing is
+    // indistinguishable from a burst that never fired. If this reads none, the burst has no
+    // room left under the ceiling and raising burstMult will change nothing. It is also the
+    // number to watch when checking whether a transplanted ability stacks across re-equips:
+    // holster and redraw a few times and see whether it drains.
+    let ceil2 = BYKSpeedCeiling();
+    if ceil2 > 0.0 {
+      let room = ceil2 - speed;
+      if room <= 0.01 {
+        out += s"Speed headroom: none (at or over the \(ceil2) ceiling)\n";
+      } else {
+        out += s"Speed headroom: \(room) under the \(ceil2) ceiling\n";
+      }
+    }
     let burst = sys.GetBurst();
     if IsDefined(burst) && burst.IsActive() {
       out += s"Kill burst LIVE: \(burst.GetRemaining(game))s left, \(burst.GetKills()) kill(s) chained";
       out += burst.HasPlayerMod() ? ", mirrored onto V.\n" : ".\n";
     } else {
-      out += "Kill burst idle. Kill something with the blades.\n";
+      out += "Kill burst idle. Kill something with the arm you have out.\n";
     }
     let dash = sys.GetDash();
     if IsDefined(dash) && dash.IsActive() {

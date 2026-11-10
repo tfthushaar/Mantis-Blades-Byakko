@@ -161,9 +161,15 @@ public func BYKBaselineEvaluate(game: GameInstance, baseline: ref<BYKBaselineSta
     baseline.Clear(game);
     return false;
   }
-  let weapon = BYKEquippedMantisSettled(game);
+  // Either cyberarm, not only Mantis Blades.
+  //
+  // This was BYKEquippedMantisSettled, which resolves Cyb_MantisBlades and nothing else, so
+  // Gorilla Arms never received the resting lift at all while still receiving profiles,
+  // abilities and both timed windows. That inconsistency was invisible from outside: the arm
+  // just felt slower than the blades for no stated reason.
+  let weapon = BYKEquippedArmSettled(game);
   if !IsDefined(weapon) {
-    // Blades not out. Nothing to keep current, and the modifier, if any, went with the
+    // Arm not out. Nothing to keep current, and the modifier, if any, went with the
     // weapon entity when it was put away.
     baseline.Clear(game);
     return false;

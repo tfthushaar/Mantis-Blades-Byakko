@@ -96,14 +96,43 @@ public class BYKPackageSet {
   }
 
   // Take them all back off. Only safe while the world is stable.
+  //
+  // Removed from the tracked target AND from V, which needs explaining.
+  //
+  // A package is applied to the weapon, but what a package DOES is not confined to its target.
+  // Byakko's reads as a single ApplyStatusEffectEffector, and a status effect that effector put
+  // on V is V's, with its own lifetime. Removing the package from a weapon that is about to stop
+  // existing has no reason to unwind that.
+  //
+  // A real session showed the symptom. The ability was applied, the arm was put away and
+  // redrawn, the ability was applied again, and the kill burst went from x1.09 to x1.00: speed
+  // had climbed past the animation ceiling with no headroom left. Two applications, one of them
+  // never undone, is the reading that fits.
+  //
+  // So V gets the removal call too. RemovePackage on an object that does not hold the package is
+  // a no-op, so the cost of being wrong about this is nothing, and the cost of being right and
+  // not doing it is an effect that accumulates for the rest of the session. V cannot be holding
+  // the original weapon at the same time, because the cyberarm is the active weapon whenever any
+  // of this is applied, so there is no legitimate copy to tear off by accident.
+  //
+  // This is a mitigation for a diagnosis that has not been confirmed in play. F8 now prints the
+  // speed headroom so that holstering and redrawing a few times answers it.
   public func Clear(game: GameInstance) -> Void {
-    if ArraySize(this.m_applied) > 0 && BYKEntityAlive(game, this.m_target) {
+    if ArraySize(this.m_applied) > 0 {
       let sys = GameInstance.GetGameplayLogicPackageSystem(game);
-      let ent = GameInstance.FindEntityByID(game, this.m_target);
-      let obj = ent as GameObject;
-      if IsDefined(sys) && IsDefined(obj) {
+      if IsDefined(sys) {
+        let obj: ref<GameObject>;
+        if BYKEntityAlive(game, this.m_target) {
+          obj = GameInstance.FindEntityByID(game, this.m_target) as GameObject;
+        }
+        let player = GetPlayer(game);
         for id in this.m_applied {
-          sys.RemovePackage(obj, id);
+          if IsDefined(obj) {
+            sys.RemovePackage(obj, id);
+          }
+          if IsDefined(player) {
+            sys.RemovePackage(player, id);
+          }
           BYKLog.Verbose(n"Pkg", s"Removed \(TDBID.ToStringDEBUG(id)).");
         }
       }

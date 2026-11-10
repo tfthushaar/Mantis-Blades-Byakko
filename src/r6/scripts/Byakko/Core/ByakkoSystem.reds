@@ -317,7 +317,7 @@ public class ByakkoSystem extends ScriptableSystem {
   // ---- Kills ------------------------------------------------------------
 
   // A Mantis Blade kill landed. Called from the victim's death hook.
-  public func OnMantisKill() -> Void {
+  public func OnCyberarmKill() -> Void {
     if !IsDefined(this.m_burst) {
       return;
     }
@@ -335,9 +335,12 @@ public class ByakkoSystem extends ScriptableSystem {
     }
     // Settled variant, because the stability gate just ran. The unchecked lookup would walk
     // the player, the time system, two blackboards and the workspot system a second time.
-    let weapon = BYKEquippedMantisSettled(game);
+    //
+    // Either arm. Paired with the widened check in KillSignal: flagging a Gorilla Arms hit
+    // would achieve nothing if the kill path still demanded Mantis Blades here.
+    let weapon = BYKEquippedArmSettled(game);
     if !IsDefined(weapon) {
-      return;   // the blades went away between the killing blow and the death
+      return;   // the arm went away between the killing blow and the death
     }
 
     this.m_burst.Arm(game, weapon, this.ActiveProfile(game, weapon));

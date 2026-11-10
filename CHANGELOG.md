@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.8.0
+
+**Gorilla Arms were missing half the mod, and the readout was denying they were supported at
+all.** Fixed.
+
+Gorilla Arms arrived in 1.2.0. Three features never came with them, because all three were
+calling lookups that match Mantis Blades and nothing else:
+
+* **The resting attack speed lift** never applied. Gorilla Arms felt slower than the blades with
+  nothing stated anywhere to explain why.
+* **The kill burst never fired.** Picking the Byakko profile for Gorilla Arms gave you its stats
+  and its ability and none of its signature on-kill window. Nothing reported this.
+* **F8 printed nothing.** With Gorilla Arms deployed it took the Mantis lookup, failed, and said
+  "No Mantis Blades found in the arms slot" while the mod was in fact running profiles,
+  abilities and both timed windows on them.
+
+That third one is the same shape of bug as the MaxTac readout in 1.0.2 and the dead stats in
+1.4.0: the feature works and the instrument says it does not. Three for three, which is why the
+five Mantis-only lookups behind them are now deleted rather than left in place. A Mantis-specific
+question is asked with `BYKArmKind(id) == BYKArmMantis()` now, which cannot be written by
+accident the way reaching for a function called `BYKIsMantisWeapon` could.
+
+**F8 reports more, and more honestly.** It covers either arm, names which arm it is looking at,
+says out loud that the data layer is Mantis-only so a column of zeroes on Gorilla Arms reads as
+expected instead of broken, and prints the remaining speed headroom under the ceiling. That last
+one matters because a burst that reports itself armed while giving nothing is otherwise
+indistinguishable from a burst that never fired.
+
+**Transplanted abilities are now removed from V as well as from the arm.** A real session showed
+the ability applied, the arm holstered and redrawn, the ability applied again, and the kill burst
+dropping from x1.09 to x1.00 with no headroom left. Byakko's ability reads as a single
+`ApplyStatusEffectEffector`, and a status effect that effector put on V has its own lifetime, so
+pulling the package off a weapon that is about to stop existing had no reason to unwind it.
+Removal now also goes to V, where a call for a package that is not held costs nothing.
+
+This is a mitigation for a diagnosis that has not been confirmed in play. The new headroom line
+is how to check it: holster and redraw a few times and watch whether it drains.
+
+---
+
+
 ## 1.7.0
 
 **Butcher's Cleaver now speeds up while the enemy is actually bleeding.** Its real condition,

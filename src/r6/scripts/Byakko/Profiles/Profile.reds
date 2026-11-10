@@ -245,7 +245,15 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     // something. See Combat/BleedWindow.reds.
     p.bleedWindowSeconds = 6.0;
     ArrayPush(p.bleedWindowMods, BYKMul(gamedataStatType.AttackSpeed, 1.15));
+    // Both arms' stamina stats, because these two are arm-specific and a profile does not know
+    // which arm it is going onto. The one that does not apply is a no-op on that arm, which costs
+    // a single inert modifier and avoids plumbing the arm kind down into the profile registry.
+    //
+    // Worth stating because it was wrong: only the Mantis stat was here, so the Cleaver's stamina
+    // relief silently did nothing on Gorilla Arms (L32). A stat named for one arm does not quietly
+    // cover the other, the same lesson as S6 in a smaller place.
     ArrayPush(p.bleedWindowMods, BYKAdd(gamedataStatType.MantisBladesStaminaCostReduction, 0.25));
+    ArrayPush(p.bleedWindowMods, BYKAdd(gamedataStatType.StrongArmsStaminaCostReduction, 0.25));
     p.note = "Speeds up while the enemy you are hitting is bleeding, which is the original's own condition. Its own bleed rate is what gets them there.";
     return p;
   }

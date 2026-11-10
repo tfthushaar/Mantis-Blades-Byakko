@@ -1,61 +1,31 @@
 // Byakko - Identifying the cyberarms
 //
-// Mantis Blades are cyberware, not an inventory weapon, so they live under their own record
-// tree and none of the katana record names reach them. The game does however give them
-// their own item type, gamedataItemType.Cyb_MantisBlades, which is a far steadier handle
-// than matching record-name strings: it covers all 41 Mantis Blade records (base, Chemical,
-// Electric, Thermal, MaxTac, every rarity and ++ tier) without listing any of them, and it
-// keeps working if a patch adds more.
+// Mantis Blades and Gorilla Arms are cyberware, not inventory weapons, so they live under their
+// own record trees and none of the katana record names reach them. The game does give each its
+// own item type, gamedataItemType.Cyb_MantisBlades and gamedataItemType.Cyb_StrongArms, which is
+// a far steadier handle than matching record-name strings: between them they cover all 41 Mantis
+// Blade records (base, Chemical, Electric, Thermal, MaxTac, every rarity and ++ tier) and every
+// Gorilla Arms record, without listing any of them, and they keep working if a patch adds more.
 //
-// gamedataItemType.Cyb_MantisBlades is confirmed to exist on the installed game by compiling
-// a probe against the game's own scc.exe.
-
-public func BYKIsMantisItem(id: ItemID) -> Bool {
-  if !ItemID.IsValid(id) {
-    return false;
-  }
-  if Equals(RPGManager.GetItemType(id), gamedataItemType.Cyb_MantisBlades) {
-    return true;
-  }
-  // Belt and braces: match the record name too.
-  //
-  // The item type is the authority and covers all 41 of the game's Mantis Blade records,
-  // MaxTac included, since Cyb_MantisBlades is the only mantis type in either the base or the
-  // Phantom Liberty database. This second check exists for records this mod has never seen:
-  // a future patch, or another mod's custom blades whose item type was set to something else.
-  // Missing those would be silent, and a string compare on a weapon swap costs nothing.
-  //
-  // ToStringDEBUG can return an empty string, in which case this simply never matches and the
-  // item type above remains the only test, which is how the check behaved before this existed.
-  let name = TDBID.ToStringDEBUG(ItemID.GetTDBID(id));
-  if Equals(name, "") {
-    return false;
-  }
-  return StrContains(name, "MantisBlades") || StrContains(name, "mantis_blades");
-}
-
-// The Mantis Blades installed in V's arms, drawn or not, or an invalid ItemID.
+// Both item types are confirmed present on the installed game by compiling a probe against the
+// game's own scc.exe.
 //
-// Separate from the equipped-weapon lookup because the two answer different questions. The
-// blades are only the *active weapon* while they are actually deployed, so with a gun in hand
-// the equipped-weapon check correctly reports no blades even though they are installed. The
-// diagnostic needs to tell those two cases apart, because they look identical to a player who
-// just pressed the hotkey and got told they have no Mantis Blades.
-public func BYKInstalledMantisItem(game: GameInstance) -> ItemID {
-  let player = GetPlayer(game);
-  if !IsDefined(player) {
-    return ItemID.None();
-  }
-  let data = EquipmentSystem.GetData(player);
-  if !IsDefined(data) {
-    return ItemID.None();
-  }
-  let id = data.GetActiveItem(gamedataEquipmentArea.ArmsCW);
-  if BYKIsMantisItem(id) {
-    return id;
-  }
-  return ItemID.None();
-}
+// ---------------------------------------------------------------------------
+// Why there are no Mantis-only lookups here any more
+//
+// There were five: BYKIsMantisItem, BYKIsMantisWeapon, BYKInstalledMantisItem, BYKEquippedMantis
+// and BYKEquippedMantisSettled. They were the whole module back when this was a Mantis Blades
+// mod, and they were left in place when Gorilla Arms arrived.
+//
+// Three features kept calling them long after that: the resting speed lift, the kill burst and
+// the F8 readout. So Gorilla Arms received profiles, abilities and both timed windows while
+// getting no baseline and no kill burst, and the readout denied they were supported at all. None
+// of it was deliberate. Every one of those call sites simply reached for the function whose name
+// sounded right.
+//
+// The call sites are fixed, and the five functions are deleted rather than left for the next one
+// to reach for. A Mantis-specific question is asked with BYKArmKind(id) == BYKArmMantis(), which
+// cannot be written by accident.
 
 // A readable name for whatever item this is, for the diagnostic. Falls back to the item type
 // when the record name is unavailable, and to a placeholder when neither can be read.
@@ -72,47 +42,6 @@ public func BYKDescribeItem(id: ItemID) -> String {
     return "[" + kind + "]";
   }
   return "unreadable";
-}
-
-public func BYKIsMantisWeapon(weapon: wref<WeaponObject>) -> Bool {
-  if !IsDefined(weapon) {
-    return false;
-  }
-  return BYKIsMantisItem(weapon.GetItemID());
-}
-
-// The Mantis Blade weapon object the player currently has out, or null.
-//
-// Returns null rather than guessing in every case where the answer is not certain: no
-// player, an unstable world, nothing equipped, something else equipped, or an equipped
-// blade whose entity is not attached yet. Every caller treats null as "do nothing", which
-// is why this is allowed to be strict.
-public func BYKEquippedMantis(game: GameInstance) -> wref<WeaponObject> {
-  if !BYKWorldStable(game) {
-    return null;
-  }
-  return BYKEquippedMantisSettled(game);
-}
-
-// The same lookup for a caller that has already established the world is stable.
-//
-// Split out because the stability gate walks the player, the time system, two blackboards
-// and the workspot system, and a caller that just ran it has no reason to pay for it twice.
-// Anything calling this without having checked is reading equipment mid-stream, which is the
-// exact crash this module exists to avoid.
-public func BYKEquippedMantisSettled(game: GameInstance) -> wref<WeaponObject> {
-  let player = GetPlayer(game);
-  if !IsDefined(player) {
-    return null;
-  }
-  let weapon = GameObject.GetActiveWeapon(player);
-  if !BYKWeaponSafe(weapon) {
-    return null;
-  }
-  if !BYKIsMantisWeapon(weapon) {
-    return null;
-  }
-  return weapon;
 }
 
 // ---------------------------------------------------------------------------
@@ -143,8 +72,12 @@ public func BYKArmKind(id: ItemID) -> Int32 {
   if Equals(kind, gamedataItemType.Cyb_StrongArms) {
     return BYKArmGorilla();
   }
-  // Name fallback, for the same reason BYKIsMantisItem has one: a record this mod has never
-  // seen, from a patch or another mod, whose item type was set to something unexpected.
+  // Name fallback, for a record this mod has never seen: a future patch, or another mod's custom
+  // arms, whose item type was set to something unexpected. Missing those would be silent, and a
+  // string compare on a weapon swap costs nothing.
+  //
+  // ToStringDEBUG can return an empty string, in which case this never matches and the item type
+  // above remains the only test.
   let name = TDBID.ToStringDEBUG(ItemID.GetTDBID(id));
   if Equals(name, "") {
     return BYKArmNone();
@@ -169,7 +102,12 @@ public func BYKArmKindName(kind: Int32) -> String {
 }
 
 // The cyberarm V currently has out, or null. Settled variant: the caller has already run the
-// world-stability gate. See BYKEquippedMantisSettled for why that split exists.
+// world-stability gate.
+//
+// Split out because the stability gate walks the player, the time system, two blackboards and
+// the workspot system, and a caller that just ran it has no reason to pay for it twice. Anything
+// calling the unchecked form without having checked is reading equipment mid-stream, which is the
+// exact crash this module exists to avoid.
 public func BYKEquippedArmSettled(game: GameInstance) -> wref<WeaponObject> {
   let player = GetPlayer(game);
   if !IsDefined(player) {
@@ -287,4 +225,44 @@ public func BYKEntityAlive(game: GameInstance, id: EntityID) -> Bool {
     return false;
   }
   return obj.IsAttached();
+}
+
+// ---------------------------------------------------------------------------
+// Either cyberarm, by weapon object and by installed item
+//
+// Named for what they match, so a call site cannot quietly mean something narrower than it
+// reads. See the file header for what happened when they did.
+
+public func BYKIsCyberarmItem(id: ItemID) -> Bool {
+  return BYKArmKind(id) != BYKArmNone();
+}
+
+public func BYKIsCyberarmWeapon(weapon: wref<WeaponObject>) -> Bool {
+  if !IsDefined(weapon) {
+    return false;
+  }
+  return BYKIsCyberarmItem(weapon.GetItemID());
+}
+
+// The cyberarm installed in V's arms, drawn or not, or an invalid ItemID.
+//
+// Separate from the equipped-weapon lookup because the two answer different questions. An arm is
+// only the *active weapon* while it is actually deployed, so with a gun in hand the equipped
+// lookup correctly reports no arm even though one is installed. The diagnostic has to tell those
+// two cases apart, because they look identical to a player who just pressed the hotkey and was
+// told they have no cyberarms.
+public func BYKInstalledArmItem(game: GameInstance) -> ItemID {
+  let player = GetPlayer(game);
+  if !IsDefined(player) {
+    return ItemID.None();
+  }
+  let data = EquipmentSystem.GetData(player);
+  if !IsDefined(data) {
+    return ItemID.None();
+  }
+  let id = data.GetActiveItem(gamedataEquipmentArea.ArmsCW);
+  if BYKIsCyberarmItem(id) {
+    return id;
+  }
+  return ItemID.None();
 }

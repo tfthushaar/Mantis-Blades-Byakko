@@ -25,12 +25,12 @@
 // about to despawn, so there is nothing to clean up and nothing to persist.
 
 @addField(ScriptedPuppet)
-public let bykHitByMantis: Bool;
+public let bykHitByCyberarm: Bool;
 
 @wrapMethod(ScriptedPuppet)
 protected cb func OnHit(evt: ref<gameHitEvent>) -> Bool {
   let result = wrappedMethod(evt);
-  BYKNoteMantisHit(this, evt);
+  BYKNoteCyberarmHit(this, evt);
   return result;
 }
 
@@ -41,11 +41,15 @@ protected cb func OnDeath(evt: ref<gameDeathEvent>) -> Bool {
   return result;
 }
 
-// Record whether this damage came from V swinging Mantis Blades.
+// Record whether this damage came from V swinging a cyberarm.
+//
+// Either arm. This was Mantis-only, which meant the kill burst never fired on Gorilla Arms:
+// the profile and its ability went on, the window never opened, and nothing said why. Picking
+// the Byakko profile for Gorilla Arms got you its stats and none of its signature effect.
 //
 // Ordered cheapest-check-first so the overwhelming majority of hits - enemies shooting each
 // other, enemies shooting V - leave after one or two comparisons.
-func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Void {
+func BYKNoteCyberarmHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Void {
   if !IsDefined(evt) || !IsDefined(evt.attackData) {
     return;
   }
@@ -57,11 +61,11 @@ func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Vo
   // holding now, which can already have changed by the time the victim dies.
   let weapon = evt.attackData.GetWeapon() as WeaponObject;
   if IsDefined(weapon) {
-    if BYKIsMantisWeapon(weapon) {
+    if BYKIsCyberarmWeapon(weapon) {
       // Sticky on purpose. A bleed tick started by the blades lands as a later hit with no
       // weapon attached to it, so the kill still has to count as a blade kill when the enemy
       // finally drops. That is why this is a flag rather than a per-hit decision.
-      puppet.bykHitByMantis = true;
+      puppet.bykHitByCyberarm = true;
       BYKNoteBleedingTarget(puppet);
     }
     return;
@@ -75,8 +79,8 @@ func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Vo
     return;
   }
   let held = GameObject.GetActiveWeapon(instigator);
-  if IsDefined(held) && BYKIsMantisWeapon(held) {
-    puppet.bykHitByMantis = true;
+  if IsDefined(held) && BYKIsCyberarmWeapon(held) {
+    puppet.bykHitByCyberarm = true;
     BYKNoteBleedingTarget(puppet);
   }
 }
@@ -103,9 +107,9 @@ func BYKNoteBleedingTarget(puppet: ref<ScriptedPuppet>) -> Void {
   }
 }
 
-// An enemy died. If the blades had a hand in it, open or refresh the window.
+// An enemy died. If a cyberarm had a hand in it, open or refresh the window.
 func BYKNoteDeath(puppet: ref<ScriptedPuppet>) -> Void {
-  if !puppet.bykHitByMantis {
+  if !puppet.bykHitByCyberarm {
     return;   // not a blade kill; nothing to do
   }
   if !BYKEnabled() {
@@ -116,5 +120,5 @@ func BYKNoteDeath(puppet: ref<ScriptedPuppet>) -> Void {
   if !IsDefined(sys) {
     return;
   }
-  sys.OnMantisKill();
+  sys.OnCyberarmKill();
 }
