@@ -176,9 +176,24 @@ public func BYKResolveIconicPackages(sourceId: String) -> array<TweakDBID> {
     if IsDefined(mod) {
       // Both hooks, because an iconic mod may carry its ability on either. OnAttach is the one
       // the documentation describes; OnEquip exists on the same record and is cheap to include.
+      //
+      // Read into SEPARATE arrays and merged by hand. These native accessors fill the array they
+      // are given, and nothing documents whether they clear it first. Passing one array to both
+      // calls would quietly lose the OnAttach results if OnEquip clears, and the symptom would be
+      // an ability that resolves on some weapons and not others for no visible reason.
+      let onAttach: array<wref<GameplayLogicPackage_Record>>;
+      let onEquip: array<wref<GameplayLogicPackage_Record>>;
+      mod.OnAttach(onAttach);
+      mod.OnEquip(onEquip);
       let pkgs: array<wref<GameplayLogicPackage_Record>>;
-      mod.OnAttach(pkgs);
-      mod.OnEquip(pkgs);
+      for p in onAttach {
+        ArrayPush(pkgs, p);
+      }
+      for p in onEquip {
+        if !ArrayContains(pkgs, p) {
+          ArrayPush(pkgs, p);
+        }
+      }
       for pkg in pkgs {
         if IsDefined(pkg) && ArraySize(out) < BYKMaxResolvedPackages() {
           let pid = pkg.GetID();
@@ -233,10 +248,20 @@ public func BYKLogIconicChain(sourceId: String) -> Void {
       BYKLog.Info(n"Rip", "      (no stat modifiers on the mod)");
     }
 
-    // The iconic's ability.
+    // The iconic's ability. Separate arrays per hook, for the reason given above.
+    let onAttach: array<wref<GameplayLogicPackage_Record>>;
+    let onEquip: array<wref<GameplayLogicPackage_Record>>;
+    mod.OnAttach(onAttach);
+    mod.OnEquip(onEquip);
     let pkgs: array<wref<GameplayLogicPackage_Record>>;
-    mod.OnAttach(pkgs);
-    mod.OnEquip(pkgs);
+    for q in onAttach {
+      ArrayPush(pkgs, q);
+    }
+    for q in onEquip {
+      if !ArrayContains(pkgs, q) {
+        ArrayPush(pkgs, q);
+      }
+    }
     if ArraySize(pkgs) == 0 {
       BYKLog.Info(n"Rip", "      (no ability package on the mod)");
     } else {
