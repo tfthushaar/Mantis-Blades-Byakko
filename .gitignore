@@ -4,8 +4,9 @@
 # Local-only developer status file (never committed)
 STATUS.md
 
-# Design document is kept local, not published to the repo
+# Design documents are kept local, not published to the repo
 WHITE-TIGER.md
+ICONIC-TRANSPLANT-PLAN.md
 
 # Editor / OS
 .vscode/
