@@ -43,6 +43,17 @@ public abstract class BYKConfig {
   // same-arm slashing comes back, this is the number to bring down.
   public static func AnimationSafeCeilingDefault() -> Float = 2.2
 
+  // ---- Sihil's dash window ----------------------------------------------
+  // Unlimited combo attacks for a short time after dashing. The duration is a judgement call:
+  // the in-game effect is described as "a bit", with no number anywhere, and this is short
+  // enough to feel like a reward for dashing rather than a permanent state.
+  public static func DashWindowSecondsDefault() -> Float = 5.0
+
+  // No attack speed by default, only the combo flag. Speed here would compose with a kill
+  // burst's multiplier, and two multipliers on the same stat is exactly how the
+  // arm-alternation animation bug happened. Opt in if you want it.
+  public static func DashWindowSpeedDefault() -> Float = 1.0
+
   // ---- Burst tick -------------------------------------------------------
   // How often the expiry tick runs while a burst is live. It only runs while one is live,
   // so this costs nothing in normal play. Fine enough that the window ends when it says it

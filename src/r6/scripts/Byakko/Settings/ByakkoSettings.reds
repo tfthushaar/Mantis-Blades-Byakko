@@ -7,6 +7,12 @@
 // Defaults are Byakko's reported numbers, so a fresh install is already the thing the mod
 // set out to be and nothing has to be configured to get the intended feel.
 
+// The settings group name is the mod's user-visible identity. Changing it makes Mod Settings
+// show a new group, so a player's existing values are not carried over; that cost is paid once
+// here rather than again later with more users. The script folder, class prefix and TweakDB
+// namespace stay "Byakko" on purpose: the folder name is what an existing install updates over,
+// and renaming it would leave players with two copies.
+
 enum EBYKLogLevel {
   Off = 0,
   Info = 1,
@@ -15,20 +21,20 @@ enum EBYKLogLevel {
 
 public class ByakkoSettings {
   // ---- General ----------------------------------------------------------
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-General")
   @runtimeProperty("ModSettings.displayName", "Byakko-Enabled")
   @runtimeProperty("ModSettings.description", "Byakko-Enabled-Desc")
   public let enabled: Bool = true;
 
   // ---- The on-kill window -----------------------------------------------
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstEnabled")
   @runtimeProperty("ModSettings.description", "Byakko-BurstEnabled-Desc")
   public let burstEnabled: Bool = true;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstMult")
   @runtimeProperty("ModSettings.description", "Byakko-BurstMult-Desc")
@@ -37,7 +43,7 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.max", "3.0")
   public let burstMult: Float = 1.175;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstSeconds")
   @runtimeProperty("ModSettings.description", "Byakko-BurstSeconds-Desc")
@@ -46,32 +52,57 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.max", "30.0")
   public let burstSeconds: Float = 10.0;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstCombo")
   @runtimeProperty("ModSettings.description", "Byakko-BurstCombo-Desc")
   public let burstRemovesComboPause: Bool = true;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstPlayer")
   @runtimeProperty("ModSettings.description", "Byakko-BurstPlayer-Desc")
   public let burstAlsoBuffsPlayer: Bool = true;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Burst")
   @runtimeProperty("ModSettings.displayName", "Byakko-BurstToast")
   @runtimeProperty("ModSettings.description", "Byakko-BurstToast-Desc")
   public let showBurstToast: Bool = false;
 
+  // ---- Sihil's dash window ----------------------------------------------
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Dash")
+  @runtimeProperty("ModSettings.displayName", "Byakko-DashEnabled")
+  @runtimeProperty("ModSettings.description", "Byakko-DashEnabled-Desc")
+  public let dashWindowEnabled: Bool = true;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Dash")
+  @runtimeProperty("ModSettings.displayName", "Byakko-DashSeconds")
+  @runtimeProperty("ModSettings.description", "Byakko-DashSeconds-Desc")
+  @runtimeProperty("ModSettings.step", "0.5")
+  @runtimeProperty("ModSettings.min", "1.0")
+  @runtimeProperty("ModSettings.max", "20.0")
+  public let dashWindowSeconds: Float = 5.0;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Dash")
+  @runtimeProperty("ModSettings.displayName", "Byakko-DashSpeed")
+  @runtimeProperty("ModSettings.description", "Byakko-DashSpeed-Desc")
+  @runtimeProperty("ModSettings.step", "0.025")
+  @runtimeProperty("ModSettings.min", "1.0")
+  @runtimeProperty("ModSettings.max", "2.0")
+  public let dashWindowSpeed: Float = 1.0;
+
   // ---- Resting speed ----------------------------------------------------
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Resting")
   @runtimeProperty("ModSettings.displayName", "Byakko-RestingEnabled")
   @runtimeProperty("ModSettings.description", "Byakko-RestingEnabled-Desc")
   public let restingSpeedEnabled: Bool = true;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Resting")
   @runtimeProperty("ModSettings.displayName", "Byakko-RestingSpeed")
   @runtimeProperty("ModSettings.description", "Byakko-RestingSpeed-Desc")
@@ -81,7 +112,7 @@ public class ByakkoSettings {
   public let restingAttackSpeed: Float = 1.85;
 
   // ---- The animation ceiling --------------------------------------------
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Resting")
   @runtimeProperty("ModSettings.displayName", "Byakko-SpeedCeiling")
   @runtimeProperty("ModSettings.description", "Byakko-SpeedCeiling-Desc")
@@ -91,19 +122,19 @@ public class ByakkoSettings {
   public let animationSafeCeiling: Float = 2.2;
 
   // ---- Diagnostics ------------------------------------------------------
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Diagnostics")
   @runtimeProperty("ModSettings.displayName", "Byakko-DiagEnabled")
   @runtimeProperty("ModSettings.description", "Byakko-DiagEnabled-Desc")
   public let diagnosticsEnabled: Bool = true;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Diagnostics")
   @runtimeProperty("ModSettings.displayName", "Byakko-DiagKey")
   @runtimeProperty("ModSettings.description", "Byakko-DiagKey-Desc")
   public let diagnosticKey: EInputKey = EInputKey.IK_F8;
 
-  @runtimeProperty("ModSettings.mod", "Byakko - Mantis Blades Overhaul")
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Diagnostics")
   @runtimeProperty("ModSettings.displayName", "Byakko-LogLevel")
   @runtimeProperty("ModSettings.description", "Byakko-LogLevel-Desc")

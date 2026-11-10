@@ -1,4 +1,4 @@
-# Byakko - Mantis Blades Overhaul
+# Iconic Arms - Mantis Blades and Gorilla Arms Overhaul
 
 **Mantis Blades that feel like the Byakko.**
 
@@ -35,6 +35,14 @@ are installing.
 * A burst of attack speed, +17.5% by default, for 10 seconds.
 * The pause between light attack combos is removed for that window.
 * Killing again inside the window starts it over, so a good fight never drops out of it.
+
+**On a dash, with either cyberarm** (Sihil's effect)
+
+* Unlimited combo attacks for 5 seconds, with the light attack pause removed.
+* Dashing again refreshes it.
+* Dodging counts: the Dash perk is what turns a dodge into a dash, and the game treats them as
+  the same state.
+* Works on Gorilla Arms as well as Mantis Blades.
 
 All of it is adjustable in the settings menu, and the burst is the part worth tuning. See
 [Settings](#settings).
@@ -155,7 +163,7 @@ before they need asking.
 
 ## Settings
 
-Under **Byakko - Mantis Blades Overhaul** in the Mod Settings menu. The defaults are the
+Under **Iconic Arms** in the Mod Settings menu. The defaults are the
 katana's own numbers, so you do not have to configure anything to get the intended feel.
 
 **On-kill burst**
@@ -168,6 +176,14 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Remove light combo pause | on | The other half of the Byakko's iconic, and the part you feel most. |
 | Also buff V, not just the blades | on | See the note below. |
 | Show a message on burst | off | Handy while tuning, noisy in a fight. |
+
+**Dash combo (Sihil)**
+
+| Setting | Default | |
+|---|---|---|
+| Combo after dashing | on | Sihil's effect, on either cyberarm. |
+| Dash combo duration | 5s | The in-game effect gives no number, so this is a judgement call. |
+| Dash combo attack speed | 1.0 (none) | Off by default. Speed here stacks with the kill burst, and two multipliers on one stat is what breaks the attack animations. |
 
 **Resting attack speed**
 

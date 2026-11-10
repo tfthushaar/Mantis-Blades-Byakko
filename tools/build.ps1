@@ -94,7 +94,7 @@ function New-ModZip {
 
 if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
 
-$mainZip = Join-Path $distDir "Byakko-MantisBladesOverhaul-$Version.zip"
+$mainZip = Join-Path $distDir "IconicArms-$Version.zip"
 Write-Host "Packaging $mainZip..."
 New-ModZip -SourceDir $srcDir -ZipPath $mainZip
 

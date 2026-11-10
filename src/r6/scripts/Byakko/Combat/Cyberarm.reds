@@ -1,4 +1,4 @@
-// Byakko - Identifying the blades
+// Byakko - Identifying the cyberarms
 //
 // Mantis Blades are cyberware, not an inventory weapon, so they live under their own record
 // tree and none of the katana record names reach them. The game does however give them
@@ -113,6 +113,85 @@ public func BYKEquippedMantisSettled(game: GameInstance) -> wref<WeaponObject> {
     return null;
   }
   return weapon;
+}
+
+// ---------------------------------------------------------------------------
+// Cyberarms in general
+//
+// Mantis Blades were the only target until the iconic transplant work. Gorilla Arms are the
+// second, and the two differ in ways that matter: different item type, different animations,
+// different stats worth touching. So "which cyberarm is this" is a question the rest of the mod
+// now has to be able to ask, rather than a yes or no about Mantis Blades.
+//
+// Kept as an Int32 rather than an enum so a value read back from a settings file can be
+// validated against it without an enum cast that could land out of range.
+// ---------------------------------------------------------------------------
+
+public func BYKArmNone() -> Int32 = 0
+public func BYKArmMantis() -> Int32 = 1
+public func BYKArmGorilla() -> Int32 = 2
+
+// Which cyberarm is this item, if any.
+public func BYKArmKind(id: ItemID) -> Int32 {
+  if !ItemID.IsValid(id) {
+    return BYKArmNone();
+  }
+  let kind = RPGManager.GetItemType(id);
+  if Equals(kind, gamedataItemType.Cyb_MantisBlades) {
+    return BYKArmMantis();
+  }
+  if Equals(kind, gamedataItemType.Cyb_StrongArms) {
+    return BYKArmGorilla();
+  }
+  // Name fallback, for the same reason BYKIsMantisItem has one: a record this mod has never
+  // seen, from a patch or another mod, whose item type was set to something unexpected.
+  let name = TDBID.ToStringDEBUG(ItemID.GetTDBID(id));
+  if Equals(name, "") {
+    return BYKArmNone();
+  }
+  if StrContains(name, "MantisBlades") || StrContains(name, "mantis_blades") {
+    return BYKArmMantis();
+  }
+  if StrContains(name, "StrongArms") || StrContains(name, "strong_arms") {
+    return BYKArmGorilla();
+  }
+  return BYKArmNone();
+}
+
+public func BYKArmKindName(kind: Int32) -> String {
+  if kind == BYKArmMantis() {
+    return "Mantis Blades";
+  }
+  if kind == BYKArmGorilla() {
+    return "Gorilla Arms";
+  }
+  return "none";
+}
+
+// The cyberarm V currently has out, or null. Settled variant: the caller has already run the
+// world-stability gate. See BYKEquippedMantisSettled for why that split exists.
+public func BYKEquippedArmSettled(game: GameInstance) -> wref<WeaponObject> {
+  let player = GetPlayer(game);
+  if !IsDefined(player) {
+    return null;
+  }
+  let weapon = GameObject.GetActiveWeapon(player);
+  if !BYKWeaponSafe(weapon) {
+    return null;
+  }
+  if BYKArmKind(weapon.GetItemID()) == BYKArmNone() {
+    return null;
+  }
+  return weapon;
+}
+
+// Which cyberarm is in hand right now, or BYKArmNone. Does not run the stability gate.
+public func BYKEquippedArmKind(game: GameInstance) -> Int32 {
+  let weapon = BYKEquippedArmSettled(game);
+  if !IsDefined(weapon) {
+    return BYKArmNone();
+  }
+  return BYKArmKind(weapon.GetItemID());
 }
 
 // The stats handle for a weapon entity.

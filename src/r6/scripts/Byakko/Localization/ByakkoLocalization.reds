@@ -28,6 +28,7 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
     // ---- Categories -----------------------------------------------------
     this.Text("Byakko-Category-General", "General");
     this.Text("Byakko-Category-Burst", "On-kill burst");
+    this.Text("Byakko-Category-Dash", "Dash combo (Sihil)");
     this.Text("Byakko-Category-Resting", "Resting attack speed");
     this.Text("Byakko-Category-Diagnostics", "Diagnostics");
 
@@ -62,6 +63,19 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
       "Print a short line on screen when the window opens or refreshes. Off by default - useful while tuning, noisy in a fight.");
 
     // ---- Resting --------------------------------------------------------
+    // ---- Dash window ----------------------------------------------------
+    this.Text("Byakko-DashEnabled", "Combo after dashing");
+    this.Text("Byakko-DashEnabled-Desc",
+      "Sihil's effect: dashing gives you unlimited combo attacks for a few seconds, with the pause between light attacks removed. Dodging counts as dashing, since the Dash perk is what turns one into the other. Works on both Mantis Blades and Gorilla Arms.");
+
+    this.Text("Byakko-DashSeconds", "Dash combo duration (seconds)");
+    this.Text("Byakko-DashSeconds-Desc",
+      "How long the window lasts after a dash, refreshed by dashing again. The in-game effect gives no number, so 5 seconds is a judgement call rather than a measured value.");
+
+    this.Text("Byakko-DashSpeed", "Dash combo attack speed");
+    this.Text("Byakko-DashSpeed-Desc",
+      "Extra attack speed during the dash window, on top of removing the combo pause. 1.0 means none, which is the default: speed here stacks with the on-kill burst, and two multipliers on the same stat is what breaks the attack animations. Held under the animation ceiling either way.");
+
     this.Text("Byakko-RestingEnabled", "Lift resting attack speed");
     this.Text("Byakko-RestingEnabled-Desc",
       "Bring the blades up to a target attack speed while they are equipped, so the burst starts from a katana-like baseline rather than a slow one.");

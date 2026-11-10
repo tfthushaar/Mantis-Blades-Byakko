@@ -11,9 +11,21 @@
 public class ByakkoSystem extends ScriptableSystem {
   private let m_burst: ref<BYKBurstState>;
   private let m_baseline: ref<BYKBaselineState>;
+  private let m_dash: ref<BYKDashWindow>;
 
   private let m_playerAttachCbId: Uint32;
   private let m_callbacksRegistered: Bool;
+
+  // Blackboard listener for the dash trigger. Held so it can be unregistered, and dropped
+  // without unregistering at session start, because the blackboard it was registered on has
+  // been replaced by then and reaching for the old one is a native call into a dead object.
+  private let m_locoCbId: ref<CallbackHandle>;
+  private let m_locoRegistered: Bool;
+  // Was the previous locomotion state a dash? A plain Bool rather than a "last state" int with
+  // a -1 sentinel, because redscript rejects a negative literal as a field initializer
+  // (INVALID_CONSTANT). It also reads better: the only question asked of it is whether this
+  // change is the moment of entering a dash.
+  private let m_wasDash: Bool;
 
   // Two independent tick chains, each with its own generation token.
   //
@@ -45,6 +57,7 @@ public class ByakkoSystem extends ScriptableSystem {
     this.EnsureSettings();
     this.m_burst = new BYKBurstState();
     this.m_baseline = new BYKBaselineState();
+    this.m_dash = new BYKDashWindow();
     this.RegisterPlayerAttach();
     // Register the diagnostic key and start a tick here as well as at session start. If the
     // player-attached callback is ever missed, this chain is the one that keeps retrying the
@@ -95,9 +108,18 @@ public class ByakkoSystem extends ScriptableSystem {
     if IsDefined(this.m_baseline) {
       this.m_baseline.Forget();
     }
+    if IsDefined(this.m_dash) {
+      this.m_dash.Forget();
+    }
+    // The blackboard this was registered on is gone, so the handle is stale. Drop it without
+    // unregistering and register again below, rather than calling into a replaced object.
+    this.m_locoCbId = null;
+    this.m_locoRegistered = false;
+    this.m_wasDash = false;
 
     this.EnsureSettings();
     this.EnsureCallbacks();
+    this.EnsureLocomotionListener();
     this.ScheduleSlowTick();
     BYKLog.Info(n"Core", "Session started.");
   }
@@ -127,6 +149,93 @@ public class ByakkoSystem extends ScriptableSystem {
     this.m_callbacksRegistered = true;
   }
 
+  // Register the dash trigger. Guarded and idempotent, and retried from the slow tick, so a
+  // blackboard that was not up yet at session start cannot leave the feature silently dead.
+  private func EnsureLocomotionListener() -> Void {
+    if this.m_locoRegistered {
+      return;
+    }
+    let bbs = GameInstance.GetBlackboardSystem(this.GetGameInstance());
+    if !IsDefined(bbs) {
+      return;
+    }
+    let psm = bbs.Get(GetAllBlackboardDefs().PlayerStateMachine);
+    if !IsDefined(psm) {
+      return;
+    }
+    this.m_locoCbId = psm.RegisterListenerInt(
+      GetAllBlackboardDefs().PlayerStateMachine.Locomotion, this, n"OnBYKLocomotion");
+    this.m_locoRegistered = true;
+    BYKLog.Verbose(n"Core", "Dash trigger registered.");
+  }
+
+  private func ReleaseLocomotionListener() -> Void {
+    if !this.m_locoRegistered || !IsDefined(this.m_locoCbId) {
+      this.m_locoCbId = null;
+      this.m_locoRegistered = false;
+      return;
+    }
+    let bbs = GameInstance.GetBlackboardSystem(this.GetGameInstance());
+    if IsDefined(bbs) {
+      let psm = bbs.Get(GetAllBlackboardDefs().PlayerStateMachine);
+      if IsDefined(psm) {
+        psm.UnregisterListenerInt(GetAllBlackboardDefs().PlayerStateMachine.Locomotion, this.m_locoCbId);
+      }
+    }
+    this.m_locoCbId = null;
+    this.m_locoRegistered = false;
+  }
+
+  // V's locomotion state changed. Fires on every transition, so this is a hot-ish path and
+  // leaves on the first cheap test that fails.
+  protected cb func OnBYKLocomotion(value: Int32) -> Bool {
+    let isDash = BYKLocomotionIsDash(value);
+    let wasDash = this.m_wasDash;
+    this.m_wasDash = isDash;
+    // Only the moment of entering a dash counts, not every frame of being in one, and not
+    // leaving one.
+    if isDash && !wasDash {
+      this.OnDash();
+    }
+    return false;
+  }
+
+  // ---- Dash ------------------------------------------------------------
+
+  // V dashed. Open or refresh Sihil's window if a cyberarm is in hand.
+  public func OnDash() -> Void {
+    if !IsDefined(this.m_dash) {
+      return;
+    }
+    let settings = BYKSettings();
+    if IsDefined(settings) && !settings.dashWindowEnabled {
+      return;
+    }
+    if !BYKEnabled() {
+      return;
+    }
+    let game = this.GetGameInstance();
+    // The listener can fire while the world is being rebuilt, so the same gate applies here as
+    // on the kill path.
+    if !BYKWorldStable(game) {
+      return;
+    }
+    let weapon = BYKEquippedArmSettled(game);
+    if !IsDefined(weapon) {
+      return;   // not holding a cyberarm, nothing to buff
+    }
+    this.m_dash.Arm(game, weapon);
+    if !this.m_dash.IsActive() {
+      return;
+    }
+    this.m_idleTicks = 0;
+    this.ScheduleBurstTick();
+
+    if IsDefined(settings) && settings.showBurstToast {
+      BYKShowMessage(game, s"Byakko: dash combo (\(this.m_dash.GetDashes()))", 1.2);
+    }
+  }
+
   private func OnDetach() -> Void {
     // Retire the tick chains so nothing fires against a system that is going away, and drop
     // the handles without touching a world that is already being torn down.
@@ -139,6 +248,10 @@ public class ByakkoSystem extends ScriptableSystem {
     if IsDefined(this.m_baseline) {
       this.m_baseline.Forget();
     }
+    if IsDefined(this.m_dash) {
+      this.m_dash.Forget();
+    }
+    this.ReleaseLocomotionListener();
     BYKLog.Verbose(n"Core", "Detaching.");
   }
 
@@ -207,10 +320,19 @@ public class ByakkoSystem extends ScriptableSystem {
       return;   // a chain from a previous session; let it die here
     }
     this.m_burstTickLive = false;
-    if !IsDefined(this.m_burst) {
-      return;
+    let game = this.GetGameInstance();
+
+    // Drive every timed window from this one chain. Both are ticked before deciding whether to
+    // schedule again, rather than short-circuiting on the first live one, so a window never
+    // goes unticked because another happened to expire first.
+    let live = false;
+    if IsDefined(this.m_burst) && this.m_burst.Tick(game) {
+      live = true;
     }
-    if this.m_burst.Tick(this.GetGameInstance()) {
+    if IsDefined(this.m_dash) && this.m_dash.Tick(game) {
+      live = true;
+    }
+    if live {
       this.ScheduleBurstTick();
     }
   }
@@ -248,7 +370,8 @@ public class ByakkoSystem extends ScriptableSystem {
     this.m_slowTickLive = false;
     let game = this.GetGameInstance();
 
-    this.EnsureCallbacks();   // last-resort retry for the diagnostic key
+    this.EnsureCallbacks();            // last-resort retry for the diagnostic key
+    this.EnsureLocomotionListener();   // and for the dash trigger
 
     // Stand down while the world is streaming, and keep standing down for a few ticks after
     // it reports itself stable again. The streaming system is still busy for a moment after
@@ -315,6 +438,10 @@ public class ByakkoSystem extends ScriptableSystem {
 
   public func GetBaseline() -> ref<BYKBaselineState> {
     return this.m_baseline;
+  }
+
+  public func GetDash() -> ref<BYKDashWindow> {
+    return this.m_dash;
   }
 }
 

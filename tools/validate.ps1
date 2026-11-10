@@ -86,30 +86,41 @@ function Invoke-SccCompile {
     $base = Join-Path $sandbox 'base.redscripts'
     Copy-Item $vanilla $base
     $outCache = Join-Path $sandbox 'out.redscripts'
+    # scc is ALWAYS run with its output redirected to files, never into a PowerShell pipeline.
+    #
+    # Two separate hangs and one false failure came out of doing it the other way:
+    #
+    #   - `2>&1` on a native command in Windows PowerShell 5.1 wraps each stderr line in an
+    #     ErrorRecord, and under ErrorActionPreference = Stop that turns the compiler's first
+    #     progress line into a terminating error. That produced compile "failures" a plain
+    #     build did not reproduce.
+    #   - Piping scc into anything that stops early, such as `Select-Object -First n`, stops
+    #     draining its output. scc then blocks on a full pipe buffer and never exits: the
+    #     process sits at zero CPU forever and the build appears to hang.
+    #
+    # Redirecting to files cannot do either, whatever the caller does with this script's own
+    # output, so the footgun is gone rather than merely documented.
+    $outLog = Join-Path $sandbox 'scc.out'
+    $errLog = Join-Path $sandbox 'scc.err'
+    Start-Process -FilePath $scc -ArgumentList @('-compile', $scriptsDir, '-outputCacheFile', $outCache, $base) `
+      -NoNewWindow -Wait -RedirectStandardOutput $outLog -RedirectStandardError $errLog | Out-Null
+
+    $produced = Test-Path $outCache
+    $logLines = @()
+    foreach ($f in @($outLog, $errLog)) {
+      if (Test-Path $f) { $logLines += @(Get-Content -Path $f) }
+    }
     if ($Quiet) {
-      # Captured through files rather than with 2>&1.
-      #
-      # scc writes its progress to stderr, and in Windows PowerShell 5.1 redirecting a native
-      # command's stderr inline wraps each line in an ErrorRecord. Under
-      # ErrorActionPreference = Stop that turned the compiler's first INFO line into a
-      # terminating error, and this harness then reported compile failures that a plain build
-      # did not reproduce. Redirecting to files keeps the exit status honest.
-      $outLog = Join-Path $sandbox 'scc.out'
-      $errLog = Join-Path $sandbox 'scc.err'
-      Start-Process -FilePath $scc -ArgumentList @('-compile', $scriptsDir, '-outputCacheFile', $outCache, $base) `
-        -NoNewWindow -Wait -RedirectStandardOutput $outLog -RedirectStandardError $errLog | Out-Null
-      if (-not (Test-Path $outCache)) {
-        $lines = @()
-        foreach ($f in @($outLog, $errLog)) {
-          if (Test-Path $f) { $lines += @(Get-Content -Path $f) }
-        }
-        $lines | Where-Object { $_ -match 'ERROR|unresolved|syntax' } |
+      if (-not $produced) {
+        $logLines | Where-Object { $_ -match 'ERROR|unresolved|syntax' } |
           Select-Object -First 4 | ForEach-Object { Write-Host ("      " + $_.Trim()) }
       }
     } else {
-      & $scc -compile $scriptsDir -outputCacheFile $outCache $base
+      # Print the compiler's own diagnostics, which is what the caller came for.
+      $logLines | Where-Object { $_ -match 'ERROR|WARN|unresolved|syntax|not found|not match' } |
+        ForEach-Object { Write-Host $_.Trim() }
     }
-    return (Test-Path $outCache)
+    return $produced
   }
   finally {
     if (Test-Path $sandbox) { Remove-Item $sandbox -Recurse -Force -ErrorAction SilentlyContinue }

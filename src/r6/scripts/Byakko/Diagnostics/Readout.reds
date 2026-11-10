@@ -78,7 +78,7 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
     }
     return out;
   }
-  out += s"Blades: \(BYKDescribeItem(weapon.GetItemID()))\n";
+  out += s"In hand: \(BYKArmKindName(BYKArmKind(weapon.GetItemID()))) - \(BYKDescribeItem(weapon.GetItemID()))\n";
 
   let sid = BYKWeaponStatsId(weapon);
   let speed = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
@@ -135,10 +135,16 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
     }
     let burst = sys.GetBurst();
     if IsDefined(burst) && burst.IsActive() {
-      out += s"Burst LIVE: \(burst.GetRemaining(game))s left, \(burst.GetKills()) kill(s) chained";
+      out += s"Kill burst LIVE: \(burst.GetRemaining(game))s left, \(burst.GetKills()) kill(s) chained";
       out += burst.HasPlayerMod() ? ", mirrored onto V.\n" : ".\n";
     } else {
-      out += "Burst idle. Kill something with the blades.\n";
+      out += "Kill burst idle. Kill something with the blades.\n";
+    }
+    let dash = sys.GetDash();
+    if IsDefined(dash) && dash.IsActive() {
+      out += s"Dash combo LIVE: \(dash.GetRemaining(game))s left, \(dash.GetDashes()) dash(es) chained.\n";
+    } else {
+      out += "Dash combo idle. Dash or dodge with a cyberarm out.\n";
     }
   }
 

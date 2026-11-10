@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.1.0
+
+Adds Sihil's dash combo, and it works on Gorilla Arms as well as Mantis Blades.
+
+**Dash, and you get unlimited combo attacks for a few seconds**, with the pause between light
+attacks removed, refreshed every time you dash again. This is Sihil's iconic effect. Dodging
+counts as dashing, because the Dash perk is what turns one into the other and the game treats a
+dash as a dodge.
+
+It is the first effect here that is not Mantis-only. Nothing about an infinite-combo flag is
+specific to blades, so Gorilla Arms get it too.
+
+By default the dash window adds no attack speed, only the combo flag. Speed there would stack
+with the on-kill burst's multiplier, and two multipliers on the same stat is what broke the
+attack animations in 1.0.1. There is a slider if you want it, and it is held under the animation
+ceiling either way.
+
+**Renamed to "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul".** The old name stopped
+being accurate once a feature covered both cyberarms. Mod Settings will show this as a new
+group, so your existing settings are not carried over: worth a look at the menu after updating.
+The install folder is still `r6/scripts/Byakko`, so updating over an existing install works
+normally.
+
+**F8 now tells you more.** It names which cyberarm is in hand rather than assuming blades,
+reports the dash window alongside the kill burst, and names the specific check that refused if
+the mod is standing down.
+
+---
+
+
 ## 1.0.2
 
 Fixes the mod doing nothing on some setups, adds a little more speed, and gives a clearer
