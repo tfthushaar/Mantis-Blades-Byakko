@@ -41,7 +41,8 @@ public class ByakkoSystem extends ScriptableSystem {
   private let m_slowTickLive: Bool;     // the baseline chain is already running
   private let m_settleTicks: Int32;     // stand-down counter after the world goes unstable
   private let m_idleTicks: Int32;       // consecutive ticks with no blades in hand
-  private let m_diagKeyDown: Bool;      // diagnostic key debounce: some setups deliver only one of press/release
+  private let m_diagKeyDown: Bool;
+  private let m_ripKeyDown: Bool;      // diagnostic key debounce: some setups deliver only one of press/release
 
   public static func Get(game: GameInstance) -> ref<ByakkoSystem> {
     // The systems container is null during world transitions; never dereference it then.
@@ -236,7 +237,7 @@ public class ByakkoSystem extends ScriptableSystem {
     if !IsDefined(weapon) {
       return;   // not holding a cyberarm, nothing to buff
     }
-    this.m_dash.Arm(game, weapon);
+    this.m_dash.Arm(game, weapon, this.ActiveProfile(game, weapon));
     if !this.m_dash.IsActive() {
       return;
     }
@@ -299,7 +300,7 @@ public class ByakkoSystem extends ScriptableSystem {
       return;   // the blades went away between the killing blow and the death
     }
 
-    this.m_burst.Arm(game, weapon);
+    this.m_burst.Arm(game, weapon, this.ActiveProfile(game, weapon));
     if !this.m_burst.IsActive() {
       return;   // nothing landed, so there is nothing to expire
     }
@@ -361,6 +362,22 @@ public class ByakkoSystem extends ScriptableSystem {
     if live {
       this.ScheduleBurstTick();
     }
+  }
+
+
+  // The profile currently on whichever arm is in hand, or null.
+  private func ActiveProfile(game: GameInstance, weapon: wref<WeaponObject>) -> ref<BYKProfile> {
+    if !IsDefined(weapon) {
+      return null;
+    }
+    let kind = BYKArmKind(weapon.GetItemID());
+    if kind == BYKArmMantis() && IsDefined(this.m_mantisSlot) {
+      return this.m_mantisSlot.Profile();
+    }
+    if kind == BYKArmGorilla() && IsDefined(this.m_gorillaSlot) {
+      return this.m_gorillaSlot.Profile();
+    }
+    return null;
   }
 
   // ---- Profiles ---------------------------------------------------------
@@ -505,6 +522,16 @@ public class ByakkoSystem extends ScriptableSystem {
     if !IsDefined(settings) || !settings.diagnosticsEnabled {
       return;
     }
+    // One registration serves both keys. Registering a second Input/Key callback would mean
+    // another handle to keep alive and release, for no benefit.
+    if Equals(event.GetKey(), settings.ripKey) {
+      if Equals(event.GetAction(), EInputAction.IACT_Release) {
+        this.m_ripKeyDown = false;
+        return;
+      }
+      this.OnBYKRipInput(event);
+      return;
+    }
     if !Equals(event.GetKey(), settings.diagnosticKey) {
       return;
     }
@@ -529,6 +556,29 @@ public class ByakkoSystem extends ScriptableSystem {
       }
     }
     BYKShowDiagnostics(this.GetGameInstance(), this);
+  }
+
+  // Second diagnostic key: read every iconic's real modifiers out of TweakDB into the log.
+  //
+  // Separate from the readout because it is a different kind of question. The readout says what
+  // is applied right now; this says what the game actually holds for each iconic, which is how
+  // the transcribed and approximated profile values get checked against the source.
+  private cb func OnBYKRipInput(event: ref<KeyInputEvent>) -> Void {
+    let settings = BYKSettings();
+    if !IsDefined(settings) || !settings.diagnosticsEnabled {
+      return;
+    }
+    if !Equals(event.GetKey(), settings.ripKey) {
+      return;
+    }
+    if !Equals(event.GetAction(), EInputAction.IACT_Press) {
+      return;
+    }
+    if this.m_ripKeyDown {
+      return;
+    }
+    this.m_ripKeyDown = true;
+    BYKRipAllProfiles(this.GetGameInstance());
   }
 
   public func GetBurst() -> ref<BYKBurstState> {

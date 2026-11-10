@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.3.0
+
+**Profiles now carry their weapon's speed and combo effects**, which several iconics are
+actually defined by. The previous release left those out, which made picking a profile feel
+gutted and made the windows incoherent besides: picking Scalpel still handed you the Byakko's
+combo, because that combo was a global feature rather than the Byakko's.
+
+* **Byakko** owns its on-kill combo window again, as its own effect.
+* **Sihil** owns its dash combo window.
+* **Butcher's Cleaver** added. The original speeds up while the target is bleeding, which is
+  not state this mod tracks, so the speed is offered on a kill window instead and the readout
+  says so rather than passing it off as the real condition.
+* If the profile you pick has no window of its own, the global settings still apply, so nothing
+  about an existing install changes.
+
+Every speed modifier from any source, profile included, is held under the animation ceiling. A
+profile cannot push the light-attack chain into the regime where it stops alternating arms.
+
+**New: read the real iconic stats out of your game.** Press **F9** and every iconic's actual
+stat modifiers are written to the redscript log, read from the game's own TweakDB.
+
+This matters because of where the profile numbers come from. The blade profiles are transcribed
+from modding documentation dated April 2024, whose stat names were checked against the current
+build but whose values were not. The blunt profiles and Sihil are approximations, because that
+documentation has no stat rows for blunt weapons and omits Sihil entirely. F9 is how those get
+checked against what the game actually holds, and it only reads.
+
+---
+
+
 ## 1.2.0
 
 **Pick which iconic melee weapon's stats go on your cyberarms.** Sixteen profiles, chosen per

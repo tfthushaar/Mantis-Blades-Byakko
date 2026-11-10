@@ -60,13 +60,22 @@ public class BYKDashWindow {
   //
   // The caller has already established that the world is stable and that this weapon is an
   // attached cyberarm.
-  public func Arm(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
+  // The profile argument is the active arm's profile, or null.
+  //
+  // When that profile declares a dash window, its numbers win: Sihil's combo belongs to Sihil,
+  // not to every profile. When it does not, the global settings apply, which is what every
+  // install had before profiles existed and keeps those installs unchanged.
+  public func Arm(game: GameInstance, weapon: wref<WeaponObject>, profile: ref<BYKProfile>) -> Void {
     let settings = BYKSettings();
     let seconds = BYKConfig.DashWindowSecondsDefault();
     let speedMult = BYKConfig.DashWindowSpeedDefault();
     if IsDefined(settings) {
       seconds = ClampF(settings.dashWindowSeconds, 0.5, BYKConfig.MaxBurstSeconds());
       speedMult = ClampF(settings.dashWindowSpeed, 1.0, BYKConfig.MaxBurstMult());
+    }
+    let useProfile = BYKProfileHasDashWindow(profile);
+    if useProfile {
+      seconds = ClampF(profile.dashWindowSeconds, 0.5, BYKConfig.MaxBurstSeconds());
     }
 
     let entity = weapon.GetEntityID();
@@ -89,13 +98,22 @@ public class BYKDashWindow {
     }
     let sid = Cast<StatsObjectID>(entity);
 
-    // The effect itself.
-    this.Mods().Add(game, entity, gamedataStatType.CanWeaponInfinitlyCombo,
-                    gameStatModifierType.Additive, 1.0);
+    // The effect itself. A profile's own window replaces this rather than adding to it.
+    if useProfile {
+      for m in profile.dashWindowMods {
+        if IsDefined(m) {
+          this.Mods().AddClamped(game, entity, m.stat, m.kind, m.value);
+        }
+      }
+    } else {
+      this.Mods().Add(game, entity, gamedataStatType.CanWeaponInfinitlyCombo,
+                      gameStatModifierType.Additive, 1.0);
+    }
 
     // Opt-in speed on top, held under the animation ceiling against the current value so it
-    // composes safely with a kill burst that may already be running.
-    if speedMult > 1.001 {
+    // composes safely with a kill burst that may already be running. Skipped when a profile
+    // supplied its own modifiers, which already carry whatever speed that iconic has.
+    if !useProfile && speedMult > 1.001 {
       let current = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
       let applied = BYKClampMultToCeiling(current, speedMult);
       if applied > 1.001 {

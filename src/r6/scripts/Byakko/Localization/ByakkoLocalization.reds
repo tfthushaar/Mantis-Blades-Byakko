@@ -115,6 +115,10 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
     this.Text("Byakko-DiagKey-Desc",
       "Equip the blades and press this to see what the game actually reports: both attack speed stats, whether the data layer landed, whether you are over the vanilla melee cap, and whether a burst is live.");
 
+    this.Text("Byakko-RipKey", "Read iconic stats key");
+    this.Text("Byakko-RipKey-Desc",
+      "Writes every iconic's real stat modifiers, read from the game's own data, to the redscript log. The blade profiles here are transcribed from modding documentation and the blunt ones are approximations, so this is how you check them against what the game actually has.");
+
     this.Text("Byakko-LogLevel", "Log level");
     this.Text("Byakko-LogLevel-Desc",
       "How much this mod writes to the redscript log. Verbose logs every burst refresh.");

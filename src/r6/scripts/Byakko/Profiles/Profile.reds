@@ -67,7 +67,28 @@ public class BYKProfile {
   public let mods: array<ref<BYKStatMod>>;
   public let condition: Int32;              // when non-None, condMods apply while it holds
   public let condMods: array<ref<BYKStatMod>>;
+
+  // A profile's own timed windows. Empty mods means this profile has no such window and the
+  // global setting decides instead.
+  //
+  // This is where the speed and combo effects live. Several iconics are *defined* by one: the
+  // Byakko's rapid combo on a kill, Sihil's combo after a dash. Leaving those out of profiles
+  // made picking a profile feel gutted, and made the global windows incoherent besides, since
+  // picking Scalpel still handed you the Byakko's combo.
+  public let killWindowSeconds: Float;
+  public let killWindowMods: array<ref<BYKStatMod>>;
+  public let dashWindowSeconds: Float;
+  public let dashWindowMods: array<ref<BYKStatMod>>;
+
   public let note: String;                  // what is not included, shown by the diagnostic
+}
+
+public func BYKProfileHasKillWindow(p: ref<BYKProfile>) -> Bool {
+  return IsDefined(p) && ArraySize(p.killWindowMods) > 0;
+}
+
+public func BYKProfileHasDashWindow(p: ref<BYKProfile>) -> Bool {
+  return IsDefined(p) && ArraySize(p.dashWindowMods) > 0;
 }
 
 func BYKNewProfile(id: Int32, name: String, source: String, family: Int32, fidelity: Int32) -> ref<BYKProfile> {
@@ -100,7 +121,12 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanMeleeLeap, 1.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanMeleeLeapInAir, 1.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 10.0));
-    p.note = "On-kill combo window included.";
+    // The effect the weapon is known for: killing someone grants a short burst of speed with
+    // the light-combo pause gone. Reported as about +17.5% for about 10 seconds.
+    p.killWindowSeconds = 10.0;
+    ArrayPush(p.killWindowMods, BYKMul(gamedataStatType.AttackSpeed, 1.175));
+    ArrayPush(p.killWindowMods, BYKAdd(gamedataStatType.CanWeaponInfinitlyCombo, 1.0));
+    p.note = "Kills open a combo window, which is the Byakko's signature.";
     return p;
   }
   if id == EnumInt(EBYKProfile.Satori) {
@@ -155,7 +181,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
   if id == EnumInt(EBYKProfile.BlackUnicorn) {
     p = BYKNewProfile(id, "Black Unicorn", "Items.Preset_Katana_GoG", BYKFamilyBlade(), BYKFidelityTranscribed());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanIgnoreWeaponStaminaPenaties, 1.0));
-    p.note = "Attack speed stops sagging as stamina drains. One flag, large change.";
+    p.note = "Attack speed stops sagging as stamina drains. One flag, large change, and the one iconic whose signature really is a raw speed stat.";
     return p;
   }
   if id == EnumInt(EBYKProfile.Gwynbleidd) {
@@ -171,7 +197,28 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     p = BYKNewProfile(id, "Sihil", "Items.Preset_Sword_Sihil", BYKFamilyBlade(), BYKFidelityAuthored());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 8.0));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
-    p.note = "The dash combo window is the real effect and has its own setting.";
+    // Sihil's actual effect: unlimited combo attacks for a while after dashing.
+    p.dashWindowSeconds = 5.0;
+    ArrayPush(p.dashWindowMods, BYKAdd(gamedataStatType.CanWeaponInfinitlyCombo, 1.0));
+    p.note = "Dashing opens a combo window, which is Sihil's signature.";
+    return p;
+  }
+
+  if id == EnumInt(EBYKProfile.ButchersCleaver) {
+    // A blade by family even though the original is a knife, because what is being
+    // transplanted is its behaviour, not its weapon class. Authored: the modding table has no
+    // stat rows for any knife.
+    p = BYKNewProfile(id, "Butcher's Cleaver", "Items.Preset_Butchers_Knife_Iconic", BYKFamilyBlade(), BYKFidelityAuthored());
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.ArmorPenetrationBonus, 0.25));
+    ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 14.0));
+    // The original attacks faster and uses less stamina while the enemy is bleeding. "Is the
+    // target bleeding" is not state this mod tracks, and with a bleed rate this high a kill is
+    // a close stand-in for it, so the speed is offered on a kill window instead. Said plainly
+    // in the note rather than passed off as the real condition.
+    p.killWindowSeconds = 6.0;
+    ArrayPush(p.killWindowMods, BYKMul(gamedataStatType.AttackSpeed, 1.15));
+    ArrayPush(p.killWindowMods, BYKAdd(gamedataStatType.MantisBladesStaminaCostReduction, 0.25));
+    p.note = "The original speeds up while the target bleeds. That condition is not tracked, so the speed is on a kill window instead.";
     return p;
   }
 
@@ -228,6 +275,9 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
 
   return null;
 }
+
+// Highest profile id the registry knows. Used by the ripper to walk them all.
+public func BYKLastProfileId() -> Int32 = 17
 
 public func BYKProfileFidelityName(fidelity: Int32) -> String {
   if fidelity == BYKFidelityTranscribed() {

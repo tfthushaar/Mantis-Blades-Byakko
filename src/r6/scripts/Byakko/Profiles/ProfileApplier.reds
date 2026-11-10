@@ -7,12 +7,16 @@
 // interfere. Each owns its own sets and never touches the other's.
 //
 // ---------------------------------------------------------------------------
-// What this deliberately does not do
+// Attack speed and combo stats
 //
-// It does not touch attack speed or the combo flag. Those belong to the burst, the dash window
-// and the resting lift, which all route through the animation ceiling. A profile that set
-// attack speed directly would bypass that and reintroduce the arm-alternation bug, so no
-// profile carries those stats and this applier would not honour them if one did.
+// Profiles DO carry these, because several iconics are defined by exactly those: the Byakko's
+// rapid combo on a kill, Sihil's combo after a dash, Black Unicorn's stamina exemption. An
+// earlier version excluded them, which left profiles feeling gutted and the global windows
+// incoherent, since picking Scalpel still handed you the Byakko's combo.
+//
+// What they may not do is bypass the animation ceiling. Every speed modifier goes through
+// BYKModSet.AddClamped, which applies the same clamp the burst uses, so the light-attack chain
+// cannot be pushed into the regime where it stops alternating arms.
 
 public class BYKProfileSlot {
   private let m_armKind: Int32;
@@ -96,7 +100,7 @@ public class BYKProfileSlot {
     let applied = 0;
     for m in profile.mods {
       if IsDefined(m) && BYKProfileModAllowed(m, allowNerf) {
-        if this.m_base.Add(game, entity, m.stat, m.kind, m.value) {
+        if this.m_base.AddClamped(game, entity, m.stat, m.kind, m.value) {
           applied += 1;
         }
       }
@@ -129,7 +133,7 @@ public class BYKProfileSlot {
       }
       for m in this.m_profile.condMods {
         if IsDefined(m) && BYKProfileModAllowed(m, allowNerf) {
-          this.m_cond.Add(game, entity, m.stat, m.kind, m.value);
+          this.m_cond.AddClamped(game, entity, m.stat, m.kind, m.value);
         }
       }
       this.m_condOn = true;

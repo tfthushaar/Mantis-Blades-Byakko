@@ -24,7 +24,11 @@ menu: nine iconic blades, six iconic blunt weapons, and Sihil. Blades for Mantis
 or blunt for Gorilla Arms.
 
 Three of them carry a conditional effect that comes and goes in play: Scalpel while a
-Sandevistan runs, Jinchu-Maru and Cocktail Stick while Optical Camo is up.
+Sandevistan runs, Jinchu-Maru and Cocktail Stick while Optical Camo is up. Others carry a timed
+window: the Byakko's combo on a kill, Sihil's after a dash.
+
+Every speed effect, whatever its source, is held under the animation ceiling, so no profile can
+push the light-attack chain into the regime where it stops alternating arms.
 
 The blade profiles are transcribed from the game's own data. The blunt ones are approximations,
 because no source gives their real modifiers, and F8 tells you which kind you have.
@@ -166,6 +170,12 @@ reports, on screen and into `red4ext/logs/`:
   which usually means another Mantis Blade mod replaced the same data.
 * Whether you are over the vanilla melee cap and therefore wasting the bonus.
 * Whether a burst is live, how long it has left, and how many kills you have chained into it.
+* Which profile is on the arm in your hands, where its numbers came from, and what it does not
+  include.
+
+Press **F9** to write every iconic's real stat modifiers, read from your game's own data, to the
+redscript log. The blade profiles here are transcribed from modding documentation and the blunt
+ones are approximations, so this is how you check them against the source. It only reads.
 
 If you are reporting a problem, press F8 and include that readout. It answers most questions
 before they need asking.

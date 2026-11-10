@@ -37,6 +37,7 @@ enum EBYKProfile {
   CaretakersSpade = 14,
   Cottonmouth = 15,
   MurphysLaw = 16,
+  ButchersCleaver = 17,
 }
 
 enum EBYKLogLevel {
@@ -184,6 +185,12 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.displayName", "Byakko-DiagKey")
   @runtimeProperty("ModSettings.description", "Byakko-DiagKey-Desc")
   public let diagnosticKey: EInputKey = EInputKey.IK_F8;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Diagnostics")
+  @runtimeProperty("ModSettings.displayName", "Byakko-RipKey")
+  @runtimeProperty("ModSettings.description", "Byakko-RipKey-Desc")
+  public let ripKey: EInputKey = EInputKey.IK_F9;
 
   @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Diagnostics")

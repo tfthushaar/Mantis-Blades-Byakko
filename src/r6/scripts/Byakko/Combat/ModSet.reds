@@ -74,6 +74,41 @@ public class BYKModSet {
     return true;
   }
 
+  // Add a modifier, holding anything that touches attack speed under the animation ceiling.
+  //
+  // Profiles are allowed to carry attack speed and combo stats, because several iconics are
+  // defined by exactly those. What they are not allowed to do is bypass the ceiling: the
+  // light-attack chain stops alternating arms past it, which shipped as a bug once already.
+  // So every speed modifier from any source goes through the same clamp the burst uses.
+  public func AddClamped(game: GameInstance, entity: EntityID, statType: gamedataStatType,
+                         modType: gameStatModifierType, value: Float) -> Bool {
+    if !Equals(statType, gamedataStatType.AttackSpeed) {
+      return this.Add(game, entity, statType, modType, value);
+    }
+    let stats = GameInstance.GetStatsSystem(game);
+    if !IsDefined(stats) {
+      return false;
+    }
+    let current = stats.GetStatValue(Cast<StatsObjectID>(entity), gamedataStatType.AttackSpeed);
+    if Equals(modType, gameStatModifierType.Multiplier) {
+      let applied = BYKClampMultToCeiling(current, value);
+      if applied <= 1.001 {
+        return false;   // no headroom, and a modifier of 1.0 only costs a removal later
+      }
+      return this.Add(game, entity, statType, modType, applied);
+    }
+    // Additive: allow only as much as fits under the ceiling.
+    let ceiling = BYKSpeedCeiling();
+    let room = value;
+    if ceiling > 0.0 {
+      room = MinF(value, ceiling - current);
+    }
+    if room <= 0.001 {
+      return false;
+    }
+    return this.Add(game, entity, statType, modType, room);
+  }
+
   // Take everything back off. Safe when nothing is applied, and safe when the entity it was
   // applied to no longer exists. Only call while the world is stable; see Forget otherwise.
   public func Clear(game: GameInstance) -> Void {

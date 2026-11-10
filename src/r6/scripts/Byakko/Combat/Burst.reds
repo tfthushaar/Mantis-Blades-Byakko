@@ -71,7 +71,12 @@ public class BYKBurstState {
   //
   // Called once per Mantis Blade kill. The caller has already established that the world is
   // stable and that this weapon is attached Mantis Blades.
-  public func Arm(game: GameInstance, weapon: wref<WeaponObject>) -> Void {
+  // The profile argument is the active arm's profile, or null.
+  //
+  // When that profile declares a kill window, its numbers win: the Byakko's combo belongs to
+  // the Byakko, not to every profile. When it does not, the global settings apply, which is
+  // what every install had before profiles existed and keeps those installs unchanged.
+  public func Arm(game: GameInstance, weapon: wref<WeaponObject>, profile: ref<BYKProfile>) -> Void {
     let settings = BYKSettings();
     let seconds = BYKConfig.BurstSecondsDefault();
     let mult = BYKConfig.BurstMultDefault();
@@ -85,6 +90,26 @@ public class BYKBurstState {
       mult = ClampF(settings.burstMult, 1.0, BYKConfig.MaxBurstMult());
       killCombo = settings.burstRemovesComboPause;
       buffPlayer = settings.burstAlsoBuffsPlayer;
+    }
+
+    // A profile that declares a kill window supplies the numbers instead. Its modifiers are
+    // read below; here we only need its duration and whether it brings the combo flag, so the
+    // existing handle bookkeeping stays exactly as it is.
+    let useProfile = BYKProfileHasKillWindow(profile);
+    if useProfile {
+      seconds = ClampF(profile.killWindowSeconds, 0.5, BYKConfig.MaxBurstSeconds());
+      mult = 1.0;
+      killCombo = false;
+      for pm in profile.killWindowMods {
+        if IsDefined(pm) {
+          if Equals(pm.stat, gamedataStatType.AttackSpeed) && Equals(pm.kind, gameStatModifierType.Multiplier) {
+            mult = ClampF(pm.value, 1.0, BYKConfig.MaxBurstMult());
+          }
+          if Equals(pm.stat, gamedataStatType.CanWeaponInfinitlyCombo) {
+            killCombo = true;
+          }
+        }
+      }
     }
 
     let entity = weapon.GetEntityID();
