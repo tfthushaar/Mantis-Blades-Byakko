@@ -1,15 +1,14 @@
-// Byakko - Reading an iconic's real stat modifiers out of the game
+// Byakko - Writing what the game actually holds to the log (default F9)
 //
-// Every profile's numbers currently come from one of two places, and neither is the game:
+// The mod reads each iconic's real stats and real ability at equip time, so this is no longer the
+// route by which those reach a player. What it is for now is showing the working: it prints, per
+// weapon, the shared weapon-class block, the iconic's own hidden mod, that mod's real stat
+// modifiers with their modifier types, and the ability package with its stats and effectors.
 //
-//   - The blade profiles are transcribed from the CDPR modding documentation's iconic-effects
-//     table. That is a markdown file dated April 2024. Its stat *names* were checked against
-//     this build; its *values* were not.
-//   - The blunt profiles and Sihil are approximations, because that table has no stat rows for
-//     blunt weapons and omits Sihil entirely.
-//
-// This reads the actual modifiers out of TweakDB and writes them to the log, so both can be
-// replaced with what the game really has.
+// That matters for three reasons. It answers "where did this number come from" for anyone who
+// wants to check a profile rather than trust it. It is how the hand-written fallback table in
+// Profile.reds gets corrected. And it is the only way to see what the resolver decided to skip,
+// since curve and combined modifiers are reported here but deliberately never transplanted.
 //
 // ---------------------------------------------------------------------------
 // Why this runs on a keypress and never on a tick
@@ -23,11 +22,18 @@
 
 // Print one list of stat modifiers.
 //
-// Shared by the two places an iconic's stats can live. The modifier type is deliberately not
-// reported: ConstantStatModifier_Record.ModifierType returns something that is neither a record
-// (every accessor on it is an invalid member access) nor anything EnumInt will take, and Equals
-// against gameStatModifierType compiles while matching nothing, which is how 456 modifiers once
-// all came back labelled "other". Printing the stat and the value is what is certain.
+// Shared by every place an iconic's stats can live.
+//
+// The modifier type IS reported, which an earlier version of this said was impossible. It reads
+// back as a CName, not an enum: n"Additive", n"Multiplier" or n"AdditiveMultiplier". Comparing it
+// against a gameStatModifierType compiles and matches nothing, which is how 456 modifiers once
+// all came back labelled "other" and why the type was written off as unreachable. It was readable
+// the whole time, just not as an enum. Printing it matters because a stat and a value alone do
+// not say whether +10 or x10 is meant.
+//
+// Curve and combined modifiers are flagged rather than printed as values, because neither has
+// one: both compute from a reference stat read off a reference object, so the number depends on
+// the weapon it is read from.
 func BYKRipMods(mods: array<wref<StatModifier_Record>>, indent: String) -> Int32 {
   let n = 0;
   for m in mods {
@@ -40,9 +46,23 @@ func BYKRipMods(mods: array<wref<StatModifier_Record>>, indent: String) -> Int32
       }
       let c = m as ConstantStatModifier_Record;
       if IsDefined(c) {
-        BYKLog.Info(n"Rip", s"\(indent)\(statName) = \(c.Value())");
+        BYKLog.Info(n"Rip", s"\(indent)\(statName) \(NameToString(c.ModifierType())) \(c.Value())");
       } else {
-        BYKLog.Info(n"Rip", s"\(indent)\(statName)  (not constant, varies with the weapon)");
+        let cb = m as CombinedStatModifier_Record;
+        if IsDefined(cb) {
+          // Printed in the shape the documentation gives for the formula, so it can be read
+          // against the wiki without having to decode the field order.
+          let refObj = NameToString(cb.RefObject());
+          let op = NameToString(cb.OpSymbol());
+          let refStat = "?";
+          let rs = cb.RefStat();
+          if IsDefined(rs) {
+            refStat = EnumValueToString("gamedataStatType", Cast<Int64>(EnumInt(rs.StatType())));
+          }
+          BYKLog.Info(n"Rip", s"\(indent)\(statName) \(NameToString(cb.ModifierType())) = (\(refObj).\(refStat)) \(op) \(cb.Value())   [combined, not transplantable]");
+        } else {
+          BYKLog.Info(n"Rip", s"\(indent)\(statName) \(NameToString(m.ModifierType()))  [curve, value depends on the weapon, not transplantable]");
+        }
       }
     }
   }
@@ -109,13 +129,15 @@ public func BYKRipRecord(name: String) -> Void {
     BYKLog.Info(n"Rip", "    (groups present but empty)");
   }
 
-  // The iconic's own effect.
+  // The iconic's own stats and its ability, both of which live on a hidden mod fitted to the
+  // weapon rather than on the weapon record.
   //
   // The statModifierGroups above are the WEAPON CLASS's stats, which is why all eight katana
   // iconics came back byte-identical there: Byakko, Satori, Scalpel and the rest share one
-  // katana stat block. An iconic's own contribution is attached as a gameplay logic package,
-  // which is the "statModifiers plus OnAttach" structure the modding documentation describes.
-  // This is the half that matters for transplanting.
+  // katana stat block. What separates them is one hop further out. See Profiles/IconicResolver.reds.
+  BYKLogIconicChain(name);
+
+  // The weapon record's own packages. Three melee weapons in the game carry one here.
   let pkgs: array<wref<GameplayLogicPackage_Record>>;
   rec.OnAttach(pkgs);
   if ArraySize(pkgs) > 0 {

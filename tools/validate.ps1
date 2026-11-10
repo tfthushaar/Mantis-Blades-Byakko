@@ -117,8 +117,18 @@ function Invoke-SccCompile {
       }
     } else {
       # Print the compiler's own diagnostics, which is what the caller came for.
-      $logLines | Where-Object { $_ -match 'ERROR|WARN|unresolved|syntax|not found|not match' } |
-        ForEach-Object { Write-Host $_.Trim() }
+      #
+      # Print every line once an error has been seen rather than matching on keywords. scc puts
+      # the location on one line and the reason on the next, and a keyword filter keeps the
+      # location while dropping the reason. A TYPE_ERR's reason is the half that matters: it
+      # names the type that was expected and the type that was found, which is the only way to
+      # discover an unfamiliar return type from script. The old filter cost a full compile cycle
+      # every time one of those came up, having already hidden a real error once.
+      $seen = $false
+      foreach ($line in $logLines) {
+        if ($line -match 'ERROR|WARN') { $seen = $true }
+        if ($seen -and $line.Trim().Length -gt 0) { Write-Host $line.Trim() }
+      }
     }
     return $produced
   }

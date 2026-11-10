@@ -1,5 +1,57 @@
 # Changelog
 
+## 1.6.0
+
+**Every iconic's real ability, and every iconic's real stats, both read out of the game.** On by
+default.
+
+1.5.0 claimed this was impossible for all but three weapons. That was wrong, and wrong for a
+boring reason: it looked in one place and concluded the thing was not anywhere. An iconic does not
+keep its effect on its weapon record. The game fits each iconic a hidden mod, and that mod carries
+both the ability and the stats that make the weapon what it is. The weapon record holds only the
+weapon class's shared block, which is why all eight katana iconics read back identical and why
+Byakko looked indistinguishable from Satori.
+
+The mod now walks that chain at runtime, per weapon, with no hardcoded list:
+
+    weapon -> fitted parts -> the iconic's hidden mod -> its stats and its ability
+
+So picking **Byakko** gives you Byakko's own ability, not a reimplementation of it, and the same
+holds for every profile the walk finds something on. The three weapon-level packages found earlier
+are still applied; they turned out to be the exception, not the whole picture.
+
+**Stats now come from the game too.** The table built into the mod was transcribed by hand from a
+documentation file dated April 2024 for blades, and estimated for blunt weapons, which is why
+profiles carried a "values" field admitting which. The real modifiers are read instead, and the
+hand-written table is the fallback for a weapon that has nothing to read. F8 says which of the two
+your arm is using.
+
+**The detail that made this usable rather than merely possible.** A stat modifier's type reads back
+as a name, not an enum. Comparing it against the enum compiles cleanly and matches nothing, which
+is how an earlier version labelled all 456 modifiers it read "other" and concluded the type was
+unreachable. Without it, a transplanted stat is a coin flip between adding ten and multiplying by
+ten. It was readable the whole time.
+
+**Fixes**
+
+- The F8 readout was still printing `EffectiveRange` and `ArmorPenetrationBonus`, the two dead
+  stats 1.4.0 replaced. It reported 0 for reach and armour penetration while both were working,
+  which would have sent anyone checking straight back to the wrong conclusion. It prints `Range`
+  and `CanWeaponIgnoreArmor` now.
+- An ability is applied to the arm rather than to V. That is where it sits in the real case, and it
+  means the effect cannot outlive the weapon it came with: the worst case if removal ever failed is
+  bounded by putting the arm away instead of lasting the session.
+- Putting an arm away now genuinely removes its ability instead of dropping the handle. Dropping it
+  was safe for stat modifiers, which die with the weapon entity, but a weapon object does not
+  reliably die when a cyberarm is retracted, and a surviving one would have taken a second copy of
+  the ability on the next draw.
+- Curve and combined modifiers are read and reported but never transplanted. Both compute their
+  value from a reference stat read off a reference object, so a curve keyed to a katana's quality
+  means nothing on a pair of Mantis Blades. It would produce a number, just not the right one.
+
+---
+
+
 ## 1.5.0
 
 **Real iconic abilities, transplanted rather than imitated.** New setting, off by default.

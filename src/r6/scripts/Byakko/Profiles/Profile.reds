@@ -4,25 +4,29 @@
 // picks one per arm in the settings menu.
 //
 // ---------------------------------------------------------------------------
-// Where these numbers come from, and why that is stated per profile
+// These numbers are the fallback, not the source
 //
-// The blade profiles are transcribed from the CDPR modding documentation's iconic-effects
-// table, which gives each weapon's stat modifiers verbatim. Every stat name in it was checked
-// against this build; the values were not, and that table is dated April 2024.
+// As of 1.6.0 the mod reads each iconic's real stat modifiers out of the game at equip time.
+// Profiles/IconicResolver.reds has the walk. What follows is what it falls back to when that walk
+// finds nothing on a weapon, and what it uses when a player switches the setting off.
 //
-// The blunt profiles are NOT transcribed, because no source has their modifiers. The modding
-// table lists blunt tweak ids and nothing else, and the wikis give only the *displayed*
-// percentages. Those cannot be transplanted: Byakko and Satori both carry
-// BleedingApplicationRate +10, but display +30% and +17% bleed chance respectively, because
-// the displayed figure is the rate after the weapon's tier scaling. Transplanting the
-// percentage instead of the rate would make every profile wrong in a way that looks plausible.
+// It is worth knowing how weak the fallback is, because it was the whole mod until 1.6.0:
 //
-// So blunt profiles are authored to match the described behaviour, and every profile carries a
-// `fidelity` the menu shows. A player comparing notes with the wiki deserves to know which kind
-// they are looking at.
+//   - The blade values are transcribed by hand from the CDPR modding documentation's
+//     iconic-effects table, a markdown file dated April 2024. Every stat NAME in it was checked
+//     against this build. The VALUES never were.
+//   - The blunt values are not transcribed at all, because no source has them. The modding table
+//     lists blunt tweak ids and nothing else, and the wikis give only the *displayed*
+//     percentages, which cannot be transplanted: Byakko and Satori both carry
+//     BleedingApplicationRate +10 but display 30% and 17% bleed, because the displayed figure is
+//     the rate after the weapon's tier scaling. Transplanting the percentage would make every
+//     profile wrong in a way that looks plausible.
 //
-// `tools/probes/ApiSurface.reds` has the record walk that can read an iconic's real modifiers
-// out of TweakDB. Running it over these records is how the authored ones become transcribed.
+// So each profile still carries a `fidelity`, and F8 reports whether the stats on your arm were
+// read from the game or came from here.
+//
+// The window and package fields below are a different matter: those are behaviour, and the
+// resolver supplies the real thing for them now. They remain as the fallback for the same reason.
 
 public func BYKFidelityTranscribed() -> Int32 = 0
 public func BYKFidelityAuthored() -> Int32 = 1
@@ -80,8 +84,10 @@ public class BYKProfile {
   public let dashWindowSeconds: Float;
   public let dashWindowMods: array<ref<BYKStatMod>>;
 
-  // Gameplay logic packages this iconic actually carries, applied wholesale rather than
-  // reimplemented. Only three weapons in the game have one; see Profiles/PackageSet.reds.
+  // Gameplay logic packages named on the WEAPON record itself, as opposed to the ones the
+  // resolver finds on the iconic's fitted mod. Only three melee weapons in the game put one here,
+  // so this list stays short and is merged with whatever the resolver finds.
+  // See Profiles/IconicResolver.reds and Profiles/PackageSet.reds.
   public let packages: array<String>;
 
   public let note: String;                  // what is not included, shown by the diagnostic

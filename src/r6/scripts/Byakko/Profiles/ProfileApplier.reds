@@ -26,6 +26,7 @@ public class BYKProfileSlot {
   private let m_condOn: Bool;               // are the conditional mods currently applied
   private let m_profile: ref<BYKProfile>;
   private let m_pkgs: ref<BYKPackageSet>;   // real ability packages, when the profile has any
+  private let m_statsFromGame: Bool;        // were the applied stats read from TweakDB
 
   public func Init(armKind: Int32) -> Void {
     this.m_armKind = armKind;
@@ -54,6 +55,13 @@ public class BYKProfileSlot {
     return IsDefined(this.m_pkgs) ? this.m_pkgs.Count() : 0;
   }
 
+  // Were the stats currently applied read out of the game, or taken from the built-in table?
+  // The diagnostic prints this, because it is the difference between a number that is the
+  // weapon's own and one that was written by hand from a documentation table.
+  public func StatsFromGame() -> Bool {
+    return this.m_statsFromGame;
+  }
+
   public func IsApplied() -> Bool {
     return IsDefined(this.m_profile) && !this.m_base.IsEmpty();
   }
@@ -71,8 +79,20 @@ public class BYKProfileSlot {
   // what they should be, which is what makes it safe to drive from a tick.
   public func Sync(game: GameInstance, weapon: wref<WeaponObject>, wantedId: Int32) -> Void {
     if !IsDefined(weapon) {
-      // The arm is not out. Its modifiers went with the weapon entity, so drop the handles
-      // without touching anything.
+      // The arm is not out.
+      //
+      // Stat modifiers can simply be forgotten: they went with the weapon entity, and a stale
+      // handle to a dead entity costs nothing.
+      //
+      // A package cannot. Putting a cyberarm away does not reliably destroy the weapon object,
+      // and if it survives with a package still on it, forgetting the handle means the next draw
+      // applies a second copy. So packages get a real removal, which is safe here because this
+      // only runs behind the caller's world-stability gate and because Clear checks the target is
+      // still alive before touching the package system. If the entity really did go, Clear
+      // degrades to exactly the Forget that used to happen.
+      if IsDefined(this.m_pkgs) {
+        this.m_pkgs.Clear(game);
+      }
       this.Forget();
       return;
     }
@@ -103,8 +123,22 @@ public class BYKProfileSlot {
       allowNerf = settings.allowDamageReduction;
     }
 
+    // ---- The stats -------------------------------------------------------
+    //
+    // Preferred from the game itself. BYKResolveIconicStats walks this iconic's hidden mod record
+    // and reads its real modifiers, which is where the per-weapon difference actually lives. The
+    // authored table in Profile.reds is the fallback for a weapon the walk finds nothing on, and
+    // for a player who switches the setting off.
+    //
+    // Both paths go through AddClamped, so neither can push attack speed past the animation
+    // ceiling, and both are filtered by BYKProfileModAllowed.
+    let resolved = BYKResolveIconicStats(profile.source);
+    let fromGame = ArraySize(resolved) > 0 && BYKUseGameStats();
+    let chosen = fromGame ? resolved : profile.mods;
+    this.m_statsFromGame = fromGame;
+
     let applied = 0;
-    for m in profile.mods {
+    for m in chosen {
       if IsDefined(m) && BYKProfileModAllowed(m, allowNerf) {
         if this.m_base.AddClamped(game, entity, m.stat, m.kind, m.value) {
           applied += 1;
@@ -114,25 +148,39 @@ public class BYKProfileSlot {
     this.m_profile = profile;
     this.m_profileId = wantedId;
 
-    // The real ability packages, if this iconic has any and the player opted in.
+    // ---- The ability -----------------------------------------------------
     //
-    // Applied to V rather than to the weapon, because that is where an ability lives, and
-    // tracked separately so it comes off on exactly the same boundaries as the stats.
-    if BYKProfileHasPackages(profile) && BYKPackagesEnabled() {
+    // Two sources, and both are the game's own data rather than a reimplementation:
+    //
+    //   - the iconic mod fitted to the weapon, which is where almost every iconic keeps its
+    //     effect, found by walking the record chain
+    //   - the weapon record's own OnAttach, which only three melee weapons in the game use
+    //
+    // Applied to the WEAPON, not to V. That is where the package sits in the real case, since it
+    // belongs to a mod fitted to the weapon, so it is the faithful target. It is also the safer
+    // one: a package on the weapon entity cannot outlive the weapon, so the worst case if removal
+    // ever failed is bounded by putting the arm away, rather than lasting the whole session. V is
+    // passed as the instigator, because the effect is V's.
+    if BYKPackagesEnabled() {
       let player = GetPlayer(game);
-      if IsDefined(player) {
-        for name in profile.packages {
-          let pid = TDBID.Create(name);
-          if TDBID.IsValid(pid) {
-            this.m_pkgs.Add(game, player, pid);
-          } else {
-            BYKLog.Warn(n"Pkg", s"Profile named a package that does not resolve: \(name)");
+      let ids = BYKResolveIconicPackages(profile.source);
+      for name in profile.packages {
+        let pid = TDBID.Create(name);
+        if TDBID.IsValid(pid) {
+          if !ArrayContains(ids, pid) {
+            ArrayPush(ids, pid);
           }
+        } else {
+          BYKLog.Warn(n"Pkg", s"Profile named a package that does not resolve: \(name)");
         }
+      }
+      for pid in ids {
+        this.m_pkgs.Add(game, weapon, player, pid);
       }
     }
 
-    BYKLog.Info(n"Profile", s"\(BYKArmKindName(this.m_armKind)): \(profile.name), \(applied) stat(s), \(this.PackageCount()) package(s).");
+    let src = fromGame ? "from the game" : "from the built-in table";
+    BYKLog.Info(n"Profile", s"\(BYKArmKindName(this.m_armKind)): \(profile.name), \(applied) stat(s) \(src), \(this.PackageCount()) ability package(s).");
   }
 
   // Apply or remove the conditional half as the condition flips. Called from the tick, and only
@@ -180,6 +228,7 @@ public class BYKProfileSlot {
     this.m_condOn = false;
     this.m_profileId = EnumInt(EBYKProfile.None);
     this.m_profile = null;
+    this.m_statsFromGame = false;
   }
 
   // Drop handles with no native calls, for loads, respawns and teardown.
@@ -196,6 +245,7 @@ public class BYKProfileSlot {
     this.m_condOn = false;
     this.m_profileId = EnumInt(EBYKProfile.None);
     this.m_profile = null;
+    this.m_statsFromGame = false;
   }
 }
 

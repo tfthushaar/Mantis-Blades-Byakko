@@ -30,8 +30,13 @@ window: the Byakko's combo on a kill, Sihil's after a dash.
 Every speed effect, whatever its source, is held under the animation ceiling, so no profile can
 push the light-attack chain into the regime where it stops alternating arms.
 
-The blade profiles are transcribed from the game's own data. The blunt ones are approximations,
-because no source gives their real modifiers, and F8 tells you which kind you have.
+Each profile's stats are read out of your game's own data when you equip the arm, so they are the
+weapon's real numbers rather than this mod's idea of them. The mod carries a hand-written table as
+a fallback for anything it finds nothing to read on, and F8 says which of the two you are looking
+at.
+
+You also get the iconic's real ability, not a reimplementation of it. An iconic keeps its effect on
+a hidden mod the game fits to it, and the mod reads that and puts it on your arm.
 
 
 **Always, while the blades are equipped**
@@ -173,9 +178,10 @@ reports, on screen and into `red4ext/logs/`:
 * Which profile is on the arm in your hands, where its numbers came from, and what it does not
   include.
 
-Press **F9** to write every iconic's real stat modifiers, read from your game's own data, to the
-redscript log. The blade profiles here are transcribed from modding documentation and the blunt
-ones are approximations, so this is how you check them against the source. It only reads.
+Press **F9** to write what your game actually holds for every iconic to the redscript log: its
+stat modifiers with their types, the hidden mod the game fits it, and that mod's ability package.
+This is how you check a profile rather than take its word for it, and it is also where the mod
+reports anything it decided not to transplant. It only reads.
 
 If you are reporting a problem, press F8 and include that readout. It answers most questions
 before they need asking.
@@ -203,7 +209,8 @@ katana's own numbers, so you do not have to configure anything to get the intend
 | Setting | Default | |
 |---|---|---|
 | Enable iconic profiles | on | |
-| Transplant real iconic abilities | off | Hands your arm the iconic's actual ability package instead of an imitation. Only Sihil, Gwynbleidd and Sasquatch's Hammer carry one. Off by default because a package's contents cannot be read from script. |
+| Transplant real iconic abilities | on | Hands your arm the iconic's actual ability instead of an imitation of it. Covers every iconic that has one. The ability sits on the arm and comes off when you put it away, change profile, or load a save. |
+| Read stats from the game | on | Reads each iconic's real stat modifiers out of the game's own data instead of the table built into the mod. Leave this on. Press F8 to see which of the two your arm is using. |
 | Mantis Blades profile | Byakko | So an existing install does not change behaviour on update. |
 | Gorilla Arms profile | none | |
 | Allow damage reductions | off | Some iconics carry a x0.9 damage multiplier. Off so a profile picked for its bleed does not quietly cost you damage. |

@@ -77,7 +77,13 @@ public class ByakkoSettings {
   @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
   @runtimeProperty("ModSettings.displayName", "Byakko-Transplant")
   @runtimeProperty("ModSettings.description", "Byakko-Transplant-Desc")
-  public let transplantAbilities: Bool = false;
+  public let transplantAbilities: Bool = true;
+
+  @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
+  @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")
+  @runtimeProperty("ModSettings.displayName", "Byakko-GameStats")
+  @runtimeProperty("ModSettings.description", "Byakko-GameStats-Desc")
+  public let useGameStats: Bool = true;
 
   @runtimeProperty("ModSettings.mod", "Iconic Arms - Mantis Blades and Gorilla Arms Overhaul")
   @runtimeProperty("ModSettings.category", "Byakko-Category-Profiles")

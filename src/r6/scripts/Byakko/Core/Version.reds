@@ -2,6 +2,6 @@
 //
 // tools/build.ps1 rewrites both values at package time; do not edit them by hand.
 
-public func ByakkoVersion() -> String = "1.5.0"
+public func ByakkoVersion() -> String = "1.6.0"
 
-public func ByakkoVersionCode() -> Int32 = 10500
+public func ByakkoVersionCode() -> Int32 = 10600

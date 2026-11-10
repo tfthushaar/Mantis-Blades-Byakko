@@ -1,46 +1,50 @@
 // Byakko - Transplanting an iconic's real gameplay logic package
 //
-// This is the one part of the mod that hands a cyberarm an iconic's actual ability rather than
-// a reimplementation of it. The game applies these packages itself when you equip the weapon;
-// GameplayLogicPackageSystem.ApplyPackage lets the same package be put on something else.
+// This is the part of the mod that hands a cyberarm an iconic's actual ability rather than an
+// imitation of it. The game applies these packages itself when the weapon is equipped;
+// GameplayLogicPackageSystem.ApplyPackage puts the same package on something else.
 //
 // ---------------------------------------------------------------------------
-// Which iconics this can do, and why not all of them
+// Which iconics this can do
 //
-// Reading every iconic melee record out of the game showed that most of them do NOT carry a
-// weapon-specific package. All eight katana iconics attach only `GLP.HoldingMelee`, the generic
-// "a melee weapon is in your hands" package, and they are byte-identical to each other in their
-// stat modifiers too. Whatever makes Byakko different from Satori is not reachable through any
-// accessor redscript exposes: GameplayLogicPackage_Record has no Abilities or StatusEffects
-// accessor, and the weapon records have no Attachments or DefaultItems.
+// All of them that have one. An earlier version of this file said otherwise, and said it in a
+// changelog too: that only three melee weapons carried a package, that all eight katana iconics
+// attached nothing but the generic GLP.HoldingMelee, and that "whatever makes Byakko different
+// from Satori is not reachable through any accessor redscript exposes". That was wrong. It was a
+// conclusion drawn from looking in one place, the weapon record, and finding nothing there.
 //
-// Three weapons do carry their own package, so for those the real thing can be transplanted:
+// An iconic keeps its effect on a hidden mod fitted to it, not on the weapon record, and that mod
+// is reachable. Profiles/IconicResolver.reds has the walk and the reasoning. The three
+// weapon-level packages found earlier are real, they are just the exception rather than the whole
+// story:
 //
 //   Sihil                 Items.Preset_Sword_Sihil_inline0
 //   Gwynbleidd            Items.Preset_Sword_Witcher_inline0
 //   Sasquatch's Hammer    GLP.HoldingSasquatchHammer
 //
-// For the rest, a reimplemented window is the only honest option, and the profile says so.
+// ---------------------------------------------------------------------------
+// Why the target is the weapon
+//
+// In the real case the package belongs to a mod fitted to the weapon, so the weapon is the
+// faithful target, and the cyberarm IS the weapon here. V is passed as the instigator, because
+// the effect is V's.
+//
+// It is also the safer of the two choices, which is worth saying plainly. A package applied to the
+// weapon entity cannot outlive the weapon: if removal ever failed, putting the arm away ends it.
+// A package applied to V would last the rest of the session. Given that this is the one feature
+// that hands over something the mod did not author, bounding the worst case to the weapon's
+// lifetime is worth more than the alternative.
 //
 // ---------------------------------------------------------------------------
-// Why this is the most carefully guarded thing in the mod
+// The rules it still keeps
 //
-// Every other effect here is a stat modifier: it has a handle, it comes off, and the worst case
-// is a number being wrong. A package is different. Its contents cannot be inspected from
-// script, so what it grants is not fully known, and that means it is the one feature that could
-// in principle leave something behind.
-//
-// So it gets stricter rules than anything else:
-//
-//   - Only ids from the profile registry are ever passed. Nothing comes from a settings string
-//     or from player input.
-//   - Applied to the player, tracked by both the package id and the player's entity id, and
-//     removed before anything else is applied.
-//   - Removed on unequip, on profile change, on expiry of nothing (there is no timer: it is
-//     tied to having the arm out), at session start and on detach.
-//   - It has its own setting, default off, because a player should be able to run the rest of
-//     the mod without the one part that touches something it cannot read.
+//   - Only ids resolved from TweakDB or named in the profile registry are ever passed. Nothing
+//     comes from a settings string or from player input.
+//   - Tracked by both the package id and the target's entity id, and removed before anything new
+//     is applied. One set never mixes two targets.
+//   - Removed on unequip, on profile change, on session start and on detach.
 //   - If the package system is unavailable it does nothing rather than retrying.
+//   - It has its own setting, so the rest of the mod can be run without it.
 
 public class BYKPackageSet {
   private let m_applied: array<TweakDBID>;
@@ -57,8 +61,12 @@ public class BYKPackageSet {
     return BYKSameEntity(this.m_target, target);
   }
 
-  // Apply one package to the player, remembering it so it can come back off.
-  public func Add(game: GameInstance, target: ref<GameObject>, id: TweakDBID) -> Bool {
+  // Apply one package, remembering it so it can come back off.
+  //
+  // `target` is what the package lands on, normally the cyberarm. `instigator` is who it belongs
+  // to, normally V. Passing the player as instigator is what makes an effector attribute its work
+  // to V rather than to a weapon.
+  public func Add(game: GameInstance, target: ref<GameObject>, instigator: ref<GameObject>, id: TweakDBID) -> Bool {
     if !IsDefined(target) || !TDBID.IsValid(id) {
       return false;
     }
@@ -73,8 +81,14 @@ public class BYKPackageSet {
       BYKLog.Warn(n"Pkg", "Refused to mix two targets in one package set.");
       return false;
     }
-    // The player is both target and instigator here: the arm is V's, and the effect is V's.
-    sys.ApplyPackage(target, target, id);
+    if ArrayContains(this.m_applied, id) {
+      // Already on. Applying twice would stack it and leave one copy behind on removal.
+      return false;
+    }
+    // Fall back to the target as its own instigator rather than passing null, which is what the
+    // game does for a package with no obvious source.
+    let source = IsDefined(instigator) ? instigator : target;
+    sys.ApplyPackage(target, source, id);
     ArrayPush(this.m_applied, id);
     this.m_target = entity;
     BYKLog.Info(n"Pkg", s"Applied \(TDBID.ToStringDEBUG(id)).");
@@ -99,23 +113,39 @@ public class BYKPackageSet {
 
   // Drop the record of what was applied without calling into the game.
   //
-  // Unlike a stat modifier, a package applied to a player who then stops existing is not
-  // obviously harmless, so this is used only where the player really is gone: a load, a
-  // respawn, a teardown. In those cases the package went with the old player object.
+  // Used only where the target really is gone: a load, a respawn, a teardown, or the arm being
+  // put away. In those cases the package went with the object it was on, which is the whole
+  // reason the weapon is the target rather than the player.
   public func Forget() -> Void {
     ArrayClear(this.m_applied);
     this.m_target = BYKNoEntity();
   }
 }
 
-// Is package transplanting switched on?
+// Is ability transplanting switched on?
 //
-// Default off. This is the one feature whose contents the mod cannot inspect, so it is opt-in
-// rather than something a player discovers by accident.
+// Defaults to on. It was off while the only thing it could do was three weapons, and while a
+// package's contents were believed to be unreadable. Both of those changed: the resolver reaches
+// every iconic that has an ability, and a package's stats and effectors can be listed with
+// pkg.Stats() and pkg.Effectors(), which the F9 dump prints. Transplanting the real ability is
+// the point of the mod, so it is on unless a player turns it off.
 public func BYKPackagesEnabled() -> Bool {
   let settings = BYKSettings();
   if !IsDefined(settings) {
-    return false;
+    // Without Mod Settings there is no menu to turn it off in, so the default applies.
+    return true;
   }
   return settings.transplantAbilities;
+}
+
+// Should stats be read out of the game rather than taken from the built-in table?
+//
+// Defaults to on, for the same reason. The built-in table is a transcription of a documentation
+// file dated April 2024 for blades, and an approximation for blunts; the game is the game.
+public func BYKUseGameStats() -> Bool {
+  let settings = BYKSettings();
+  if !IsDefined(settings) {
+    return true;
+  }
+  return settings.useGameStats;
 }

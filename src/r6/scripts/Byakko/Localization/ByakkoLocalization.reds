@@ -79,7 +79,11 @@ public class BYKLocalizationEnUs extends ModLocalizationPackage {
 
     this.Text("Byakko-Transplant", "Transplant real iconic abilities");
     this.Text("Byakko-Transplant-Desc",
-      "Hands your cyberarm the iconic's actual ability package instead of an imitation of it. Only three melee iconics in the game carry one: Sihil, Gwynbleidd and Sasquatch's Hammer. Off by default, because a package's contents cannot be read from script, so this is the one part of the mod that applies something it cannot fully inspect. It is removed when you put the arm away, change profile, or load a save.");
+      "Hands your cyberarm the iconic's actual ability instead of an imitation of it. The mod finds it by reading the hidden mod the game fits to each iconic, so this covers every iconic that has an ability rather than a handful. The ability goes on the arm itself and comes off when you put the arm away, change profile, or load a save. Press F9 to write what was found to the log.");
+
+    this.Text("Byakko-GameStats", "Read stats from the game");
+    this.Text("Byakko-GameStats-Desc",
+      "Reads each iconic's real stat modifiers out of the game's own data instead of using the table built into the mod. Leave this on. The built-in table was transcribed by hand from a documentation file for blades and estimated for blunt weapons, so it is the fallback, not the better source. Press F8 to see which of the two your arm is currently using.");
 
     this.Text("Byakko-AllowNerf", "Allow damage reductions");
     this.Text("Byakko-AllowNerf-Desc",

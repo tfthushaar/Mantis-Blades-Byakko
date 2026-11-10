@@ -115,10 +115,15 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   // blades are equipped, the data layer did not apply - a TweakXL load error, or another mod
   // replacing the same array - and that is worth knowing before blaming the feel.
   out += "\nData layer (byakko-baseline.yaml):\n";
-  out += s"  EffectiveRange  \(stats.GetStatValue(sid, gamedataStatType.EffectiveRange))\n";
+  // Range and CanWeaponIgnoreArmor, not EffectiveRange and ArmorPenetrationBonus. Those two are
+  // real stat types that no melee weapon reads, which is why the mod's reach and armour
+  // penetration did nothing from 0.1.0 to 1.4.0 while every compile passed. This readout kept
+  // printing the dead pair after the data layer was corrected, so it reported 0 for two stats
+  // that were working and would have sent anyone checking it straight back to the wrong answer.
+  out += s"  Range           \(stats.GetStatValue(sid, gamedataStatType.Range))\n";
   out += s"  CanMeleeLeap    \(stats.GetStatValue(sid, gamedataStatType.CanMeleeLeap))\n";
   out += s"  BleedRate       \(stats.GetStatValue(sid, gamedataStatType.BleedingApplicationRate))\n";
-  out += s"  ArmorPen        \(stats.GetStatValue(sid, gamedataStatType.ArmorPenetrationBonus))\n";
+  out += s"  IgnoreArmor     \(stats.GetStatValue(sid, gamedataStatType.CanWeaponIgnoreArmor))\n";
   out += s"  IgnoreStamPen   \(stats.GetStatValue(sid, gamedataStatType.CanIgnoreWeaponStaminaPenaties))\n";
   out += s"  InfiniteCombo   \(stats.GetStatValue(sid, gamedataStatType.CanWeaponInfinitlyCombo))   (1 only during a burst)\n";
 
@@ -138,8 +143,16 @@ Profile: ";
 ";
       out += s"  source     \(prof.source)
 ";
-      out += s"  values     \(BYKProfileFidelityName(prof.fidelity))
+      // Which of the two stat sources is actually in use, which the fidelity field alone no
+      // longer answers: a profile marked Authored still reports "read from the game" when the
+      // resolver found real modifiers on that weapon's iconic mod.
+      if slot.StatsFromGame() {
+        out += "  values     read from the game's own data
 ";
+      } else {
+        out += s"  values     \(BYKProfileFidelityName(prof.fidelity)) (nothing found to read)
+";
+      }
       if prof.condition != BYKCondNone() {
         out += s"  condition  \(BYKProfileConditionName(prof.condition)), currently ";
         out += slot.ConditionApplied() ? "APPLIED
@@ -148,14 +161,14 @@ Profile: ";
       }
       let pkgN = slot.PackageCount();
       if pkgN > 0 {
-        out += s"  abilities  \(pkgN) real package(s) transplanted
+        out += s"  abilities  \(pkgN) real package(s) transplanted onto the arm
 ";
       } else {
-        if BYKProfileHasPackages(prof) {
-          out += "  abilities  this iconic HAS a real package, transplanting is off
+        if !BYKPackagesEnabled() {
+          out += "  abilities  transplanting is switched off in settings
 ";
         } else {
-          out += "  abilities  no transplantable package; effects are reimplemented
+          out += "  abilities  none found on this weapon; its effects are reimplemented
 ";
         }
       }
