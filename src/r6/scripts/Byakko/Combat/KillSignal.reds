@@ -62,6 +62,7 @@ func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Vo
       // weapon attached to it, so the kill still has to count as a blade kill when the enemy
       // finally drops. That is why this is a flag rather than a per-hit decision.
       puppet.bykHitByMantis = true;
+      BYKNoteBleedingTarget(puppet);
     }
     return;
   }
@@ -76,6 +77,29 @@ func BYKNoteMantisHit(puppet: ref<ScriptedPuppet>, evt: ref<gameHitEvent>) -> Vo
   let held = GameObject.GetActiveWeapon(instigator);
   if IsDefined(held) && BYKIsMantisWeapon(held) {
     puppet.bykHitByMantis = true;
+    BYKNoteBleedingTarget(puppet);
+  }
+}
+
+// This cyberarm hit landed. If the thing it landed on is bleeding, tell the system.
+//
+// Butcher's Cleaver's condition. Split out of the two call sites above so the status-effect query
+// happens in exactly one place, and ordered so that the overwhelmingly common case costs almost
+// nothing:
+//
+//   1. Is any profile asking for this at all? One cached Bool on the system. Every install that
+//      has not picked the Cleaver stops here, which is nearly all of them.
+//   2. Is the victim bleeding? One tagged status-effect query, and only now.
+//
+// Reaching the system before asking about the status effect is deliberate. The query is the
+// expensive half, and on a hot path the right order is cheapest discriminator first.
+func BYKNoteBleedingTarget(puppet: ref<ScriptedPuppet>) -> Void {
+  let sys = ByakkoSystem.Get(puppet.GetGame());
+  if !IsDefined(sys) || !sys.WantsBleedSignal() {
+    return;
+  }
+  if BYKTargetIsBleeding(puppet) {
+    sys.OnBleedingTargetHit();
   }
 }
 

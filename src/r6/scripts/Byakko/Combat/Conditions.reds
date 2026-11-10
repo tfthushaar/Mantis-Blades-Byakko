@@ -85,3 +85,28 @@ public func BYKSandevistanActive(game: GameInstance) -> Bool {
   // Tag form as a second route, in case a patch renames the record but keeps the tag.
   return StatusEffectSystem.ObjectHasStatusEffectWithTag(player, n"Sandevistan");
 }
+
+// Is this target bleeding?
+//
+// Butcher's Cleaver's real condition. The original attacks faster and costs less stamina while
+// the enemy is bleeding, and until now this mod substituted a kill window for it and said so in
+// the profile note. This is the actual thing.
+//
+// Tag first, deliberately. Bleeding is applied by a family of records rather than one: the base
+// effect, the weapon-applied variant, and whatever a given patch adds. Asking for the tag catches
+// all of them and survives a record being renamed, which is the failure mode that has already
+// cost this mod two releases. The record id is the second route only, for the case where a patch
+// keeps the record and drops the tag.
+//
+// Takes the target rather than reading a current target off the player. There is no reliable
+// "what is V aiming at" for melee, and the call site already has the victim in hand because it
+// runs from the hit, which is the only moment the question is actually meaningful.
+public func BYKTargetIsBleeding(target: ref<GameObject>) -> Bool {
+  if !IsDefined(target) {
+    return false;
+  }
+  if StatusEffectSystem.ObjectHasStatusEffectWithTag(target, n"Bleeding") {
+    return true;
+  }
+  return StatusEffectSystem.ObjectHasStatusEffect(target, t"BaseStatusEffect.Bleeding");
+}

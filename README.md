@@ -180,8 +180,9 @@ reports, on screen and into `red4ext/logs/`:
 
 Press **F9** to write what your game actually holds for every iconic to the redscript log: its
 stat modifiers with their types, the hidden mod the game fits it, and that mod's ability package.
-This is how you check a profile rather than take its word for it, and it is also where the mod
-reports anything it decided not to transplant. It only reads.
+It finishes with the resolver's verdict, which lists per profile exactly which stats would go on
+your arm and which abilities would be transplanted. That is the section to read if you want to
+know what the mod will really do on your install rather than what it intends to. It only reads.
 
 If you are reporting a problem, press F8 and include that readout. It answers most questions
 before they need asking.

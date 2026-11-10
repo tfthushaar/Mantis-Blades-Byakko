@@ -222,6 +222,16 @@ Conditions:
     } else {
       out += "Dash combo idle. Dash or dodge with a cyberarm out.\n";
     }
+    // Only mentioned when a profile actually asks for it. Every profile but the Cleaver leaves
+    // this permanently idle, and a line that never changes is noise in a readout.
+    let bleed = sys.GetBleed();
+    if IsDefined(bleed) && bleed.IsActive() {
+      out += s"Bleed window LIVE: \(bleed.GetRemaining(game))s left, \(bleed.GetHits()) hit(s) on a bleeding target.\n";
+    } else {
+      if sys.WantsBleedSignal() {
+        out += "Bleed window idle. Hit something that is already bleeding.\n";
+      }
+    }
     // Gorilla Arms carry CanWeaponInfinitlyCombo and CanWeaponDash in their own record, so the
     // combo flag is redundant on them. Said here rather than leaving a player to wonder why the
     // same setting feels different on the two arms.

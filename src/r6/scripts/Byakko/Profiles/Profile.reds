@@ -84,6 +84,11 @@ public class BYKProfile {
   public let dashWindowSeconds: Float;
   public let dashWindowMods: array<ref<BYKStatMod>>;
 
+  // Butcher's Cleaver's window, opened by landing a hit on a bleeding enemy rather than by a kill
+  // or a dash. See Combat/BleedWindow.reds.
+  public let bleedWindowSeconds: Float;
+  public let bleedWindowMods: array<ref<BYKStatMod>>;
+
   // Gameplay logic packages named on the WEAPON record itself, as opposed to the ones the
   // resolver finds on the iconic's fitted mod. Only three melee weapons in the game put one here,
   // so this list stays short and is merged with whatever the resolver finds.
@@ -103,6 +108,10 @@ public func BYKProfileHasKillWindow(p: ref<BYKProfile>) -> Bool {
 
 public func BYKProfileHasDashWindow(p: ref<BYKProfile>) -> Bool {
   return IsDefined(p) && ArraySize(p.dashWindowMods) > 0;
+}
+
+public func BYKProfileHasBleedWindow(p: ref<BYKProfile>) -> Bool {
+  return IsDefined(p) && ArraySize(p.bleedWindowMods) > 0;
 }
 
 func BYKNewProfile(id: Int32, name: String, source: String, family: Int32, fidelity: Int32) -> ref<BYKProfile> {
@@ -202,7 +211,7 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     p = BYKNewProfile(id, "Gwynbleidd", "Items.Preset_Sword_Witcher", BYKFamilyBlade(), BYKFidelityTranscribed());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BonusDamageAgainstBosses, 10.0));
     ArrayPush(p.packages, "Items.Preset_Sword_Witcher_inline0");
-    p.note = "Carries its own ability package, which can be transplanted. The kill-streak crit is in there rather than reimplemented.";
+    p.note = "Its kill-streak effect is the real one, transplanted as the weapon's own ability package rather than reimplemented here.";
     return p;
   }
   if id == EnumInt(EBYKProfile.Sihil) {
@@ -229,14 +238,15 @@ public func BYKMakeProfile(id: Int32) -> ref<BYKProfile> {
     p = BYKNewProfile(id, "Butcher's Cleaver", "Items.Preset_Butchers_Knife_Iconic", BYKFamilyBlade(), BYKFidelityAuthored());
     ArrayPush(p.mods, BYKAdd(gamedataStatType.CanWeaponIgnoreArmor, 0.25));
     ArrayPush(p.mods, BYKAdd(gamedataStatType.BleedingApplicationRate, 14.0));
-    // The original attacks faster and uses less stamina while the enemy is bleeding. "Is the
-    // target bleeding" is not state this mod tracks, and with a bleed rate this high a kill is
-    // a close stand-in for it, so the speed is offered on a kill window instead. Said plainly
-    // in the note rather than passed off as the real condition.
-    p.killWindowSeconds = 6.0;
-    ArrayPush(p.killWindowMods, BYKMul(gamedataStatType.AttackSpeed, 1.15));
-    ArrayPush(p.killWindowMods, BYKAdd(gamedataStatType.MantisBladesStaminaCostReduction, 0.25));
-    p.note = "The original speeds up while the target bleeds. That condition is not tracked, so the speed is on a kill window instead.";
+    // The original attacks faster and uses less stamina while the enemy is bleeding, and that is
+    // now the actual trigger. Earlier releases substituted a kill window and said so here,
+    // because "is the target bleeding" was not state this mod tracked. It is: the hit hook
+    // already has the victim resolved, so the question is asked at the one moment it means
+    // something. See Combat/BleedWindow.reds.
+    p.bleedWindowSeconds = 6.0;
+    ArrayPush(p.bleedWindowMods, BYKMul(gamedataStatType.AttackSpeed, 1.15));
+    ArrayPush(p.bleedWindowMods, BYKAdd(gamedataStatType.MantisBladesStaminaCostReduction, 0.25));
+    p.note = "Speeds up while the enemy you are hitting is bleeding, which is the original's own condition. Its own bleed rate is what gets them there.";
     return p;
   }
 

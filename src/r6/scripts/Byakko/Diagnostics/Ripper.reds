@@ -211,7 +211,57 @@ public func BYKRipAllProfiles(game: GameInstance) -> Void {
   // The two reach stats, settled by looking at what the Byakko actually uses. Both exist as
   // stat types, the string pool cannot distinguish them, and the mod currently assumes
   // EffectiveRange for its +1m without ever having confirmed it.
+  // ---- What the mod would actually apply ------------------------------
+  //
+  // The decisive section, and the reason one keypress is enough.
+  //
+  // Everything above is raw record content. This is the resolver's own verdict: for each profile,
+  // exactly which stats it would put on an arm and which abilities it would transplant. It calls
+  // the same two functions the live path calls, so what it prints is what you would get rather
+  // than a description of what should happen.
+  //
+  // It also answers the one question compile probes cannot. A probe proves an accessor resolves;
+  // it says nothing about whether the record on the other end holds anything. A profile printing
+  // zero stats and zero abilities here means that weapon keeps its data somewhere this walk does
+  // not reach, and a profile printing a large stat block means the numbers need a second look
+  // before they go on a cyberarm.
+  BYKLog.Info(n"Rip", "");
+  BYKLog.Info(n"Rip", "---- RESOLVER VERDICT: what each profile would apply ----");
+  let id2 = 1;
+  while id2 <= BYKLastProfileId() {
+    let p2 = BYKMakeProfile(id2);
+    if IsDefined(p2) {
+      let rs = BYKResolveIconicStats(p2.source);
+      let rp = BYKResolveIconicPackages(p2.source);
+      BYKLog.Info(n"Rip", s"\(p2.name)  [\(p2.source)]");
+      if ArraySize(rs) == 0 {
+        BYKLog.Info(n"Rip", s"    stats:     none found, falling back to \(ArraySize(p2.mods)) hand-written");
+      } else {
+        BYKLog.Info(n"Rip", s"    stats:     \(ArraySize(rs)) from the game");
+        for m in rs {
+          if IsDefined(m) {
+            let sn = EnumValueToString("gamedataStatType", Cast<Int64>(EnumInt(m.stat)));
+            let kn = EnumValueToString("gameStatModifierType", Cast<Int64>(EnumInt(m.kind)));
+            BYKLog.Info(n"Rip", s"                 \(sn) \(kn) \(m.value)");
+          }
+        }
+      }
+      if ArraySize(rp) == 0 {
+        BYKLog.Info(n"Rip", "    abilities: none found by the walk");
+      } else {
+        for pid in rp {
+          BYKLog.Info(n"Rip", s"    ability:   \(TDBID.ToStringDEBUG(pid))");
+        }
+      }
+      // The weapon-level packages, which the resolver merges in on top of the walk.
+      for extra in p2.packages {
+        BYKLog.Info(n"Rip", s"    ability:   \(extra)   (named on the weapon record)");
+      }
+    }
+    id2 += 1;
+  }
+
   BYKLog.Info(n"Rip", "---- end ----");
 
-  BYKShowMessage(game, "Byakko: iconic stats written to the redscript log.", 6.0);
+  BYKShowMessage(game, "Byakko: wrote the full iconic dump and the resolver verdict to the log.", 6.0);
 }

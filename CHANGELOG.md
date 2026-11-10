@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.7.0
+
+**Butcher's Cleaver now speeds up while the enemy is actually bleeding.** Its real condition,
+rather than the kill window earlier releases substituted for it.
+
+The original attacks faster and costs less stamina while its target bleeds. Every release until
+now put that speed on a kill instead and said so in the profile note, on the grounds that "is the
+target bleeding" was not something this mod tracked. It is: the hit hook already resolves the
+victim, so the question gets asked at the one moment it means anything, and the window refreshes
+on every landed hit. Given that the Cleaver's own bleed rate is what puts enemies in that state,
+this is the effect as described.
+
+Detected by status effect tag rather than by record id, so a patch renaming the bleed record does
+not quietly switch the feature off. Record id is kept as a second route.
+
+F8 reports the window, but only when a profile actually asks for it.
+
+**F9 now prints the resolver's verdict.** After the raw record dump it lists, per profile, exactly
+which stats it would put on an arm and which abilities it would transplant, by calling the same
+functions the live path calls. A compile probe proves an accessor resolves and says nothing about
+whether the record behind it holds anything, so this is the part that answers what the mod will
+really do on your install.
+
+**Correction.** The 1.6.0 notes listed Gwynbleidd's kill streak as still reimplemented. It is not,
+and has not been since 1.5.0: Gwynbleidd carries its ability on its weapon record, and that package
+is transplanted whole. The profile note said so correctly while the release notes did not.
+
+---
+
+
 ## 1.6.0
 
 **Every iconic's real ability, and every iconic's real stats, both read out of the game.** On by

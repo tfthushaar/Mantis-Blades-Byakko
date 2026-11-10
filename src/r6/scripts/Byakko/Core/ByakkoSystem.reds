@@ -12,6 +12,8 @@ public class ByakkoSystem extends ScriptableSystem {
   private let m_burst: ref<BYKBurstState>;
   private let m_baseline: ref<BYKBaselineState>;
   private let m_dash: ref<BYKDashWindow>;
+  private let m_bleed: ref<BYKBleedWindow>;
+  private let m_wantsBleed: Bool;      // does either arm's profile declare a bleed window
   private let m_mantisSlot: ref<BYKProfileSlot>;
   private let m_gorillaSlot: ref<BYKProfileSlot>;
 
@@ -61,6 +63,7 @@ public class ByakkoSystem extends ScriptableSystem {
     this.m_burst = new BYKBurstState();
     this.m_baseline = new BYKBaselineState();
     this.m_dash = new BYKDashWindow();
+    this.m_bleed = new BYKBleedWindow();
     this.m_mantisSlot = new BYKProfileSlot();
     this.m_mantisSlot.Init(BYKArmMantis());
     this.m_gorillaSlot = new BYKProfileSlot();
@@ -114,6 +117,9 @@ public class ByakkoSystem extends ScriptableSystem {
     }
     if IsDefined(this.m_baseline) {
       this.m_baseline.Forget();
+    }
+    if IsDefined(this.m_bleed) {
+      this.m_bleed.Forget();
     }
     if IsDefined(this.m_dash) {
       this.m_dash.Forget();
@@ -213,6 +219,37 @@ public class ByakkoSystem extends ScriptableSystem {
     return false;
   }
 
+  // ---- Bleeding target -------------------------------------------------
+
+  // A cyberarm hit landed on something that is bleeding. Open or refresh the Cleaver's window.
+  //
+  // Called from the victim's hit hook, so it is on a hotter path than the kill and dash entry
+  // points and the cheap guards come first. The caller has already established that the hit came
+  // from V's cyberarm and that the victim is bleeding.
+  public func OnBleedingTargetHit() -> Void {
+    if !IsDefined(this.m_bleed) || !this.m_wantsBleed {
+      return;
+    }
+    if !BYKEnabled() {
+      return;
+    }
+    let game = this.GetGameInstance();
+    // Same gate as the kill and dash paths: a hit can land on the frame a scene starts.
+    if !BYKWorldStable(game) {
+      return;
+    }
+    let weapon = BYKEquippedArmSettled(game);
+    if !IsDefined(weapon) {
+      return;
+    }
+    this.m_bleed.Arm(game, weapon, this.ActiveProfile(game, weapon));
+    if !this.m_bleed.IsActive() {
+      return;
+    }
+    this.m_idleTicks = 0;
+    this.ScheduleBurstTick();
+  }
+
   // ---- Dash ------------------------------------------------------------
 
   // V dashed. Open or refresh Sihil's window if a cyberarm is in hand.
@@ -260,6 +297,9 @@ public class ByakkoSystem extends ScriptableSystem {
     }
     if IsDefined(this.m_baseline) {
       this.m_baseline.Forget();
+    }
+    if IsDefined(this.m_bleed) {
+      this.m_bleed.Forget();
     }
     if IsDefined(this.m_dash) {
       this.m_dash.Forget();
@@ -351,6 +391,9 @@ public class ByakkoSystem extends ScriptableSystem {
     if IsDefined(this.m_dash) && this.m_dash.Tick(game) {
       live = true;
     }
+    if IsDefined(this.m_bleed) && this.m_bleed.Tick(game) {
+      live = true;
+    }
 
     // A conditional profile needs watching at this cadence rather than the slow one: a
     // Sandevistan is over in seconds. Only a profile that actually has a condition, and is
@@ -393,6 +436,7 @@ public class ByakkoSystem extends ScriptableSystem {
     if !BYKEnabled() {
       this.m_mantisSlot.Clear(game);
       this.m_gorillaSlot.Clear(game);
+      this.m_wantsBleed = false;
       return;
     }
     let weapon = BYKEquippedArmSettled(game);
@@ -407,6 +451,11 @@ public class ByakkoSystem extends ScriptableSystem {
     let gorillaWeapon = kind == BYKArmGorilla() ? weapon : null;
     this.m_mantisSlot.Sync(game, mantisWeapon, BYKWantedProfileId(BYKArmMantis()));
     this.m_gorillaSlot.Sync(game, gorillaWeapon, BYKWantedProfileId(BYKArmGorilla()));
+
+    // Cache whether a bleed window is wanted at all, so the victim's hit hook can rule itself out
+    // with one field read instead of reaching two profiles on every landed swing.
+    this.m_wantsBleed = BYKProfileHasBleedWindow(this.m_mantisSlot.Profile())
+                     || BYKProfileHasBleedWindow(this.m_gorillaSlot.Profile());
 
     // A conditional profile that has just been applied needs the fast chain running.
     if this.m_mantisSlot.WantsTick() || this.m_gorillaSlot.WantsTick() {
@@ -591,6 +640,19 @@ public class ByakkoSystem extends ScriptableSystem {
 
   public func GetDash() -> ref<BYKDashWindow> {
     return this.m_dash;
+  }
+
+  public func GetBleed() -> ref<BYKBleedWindow> {
+    return this.m_bleed;
+  }
+
+  // Does either arm's current profile declare a bleed window?
+  //
+  // Read from the victim's hit hook, which is why it is a cached Bool rather than a walk of both
+  // profiles. The hook runs on every cyberarm hit that lands, so the cost of asking has to be one
+  // field read. Recomputed whenever profiles are synced.
+  public func WantsBleedSignal() -> Bool {
+    return this.m_wantsBleed;
   }
 }
 
