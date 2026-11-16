@@ -34,7 +34,9 @@ public func BYKStableNoPlayer() -> Int32 = 1
 public func BYKStableNoBlackboards() -> Int32 = 2
 // 3 is unused. It was a loading-screen reason, removed along with the check that produced it.
 // Left unassigned rather than reused so the codes stay comparable with older logs.
-public func BYKStablePaused() -> Int32 = 4
+// 4 is unused. It was the paused reason, removed along with the check that produced it, for
+// the reasons set out in BYKWorldStableReason. Left unassigned so the codes stay comparable
+// with older logs, the same as 3.
 public func BYKStablePhotoMode() -> Int32 = 5
 public func BYKStableWorkspot() -> Int32 = 6
 public func BYKStableScene() -> Int32 = 7
@@ -69,11 +71,28 @@ public func BYKWorldStableReason(game: GameInstance) -> Int32 {
   // and every native call left out of this gate is one fewer thing that can fail to resolve
   // against a future patch and take the whole redscript compile down with it.
 
-  // Paused: the pause menu, and time-stop states.
-  let ts = GameInstance.GetTimeSystem(game);
-  if IsDefined(ts) && ts.IsPausedState() {
-    return BYKStablePaused();
-  }
+  // There is no pause check here, and that is deliberate. It used to be the second thing this
+  // function tested, and it was the same mistake as UI_System.IsInMenu one signal over.
+  //
+  // Two reasons it had to go.
+  //
+  // First, it guards against nothing. Read the hazard list at the top of this file: a load, a
+  // fast travel, a time skip, a ripperdoc install, a scene. A paused game is the opposite of
+  // all of those. Nothing is streaming, no entity is half-built, and every pointer is as
+  // settled as it will ever be. The check was added by analogy with "the game is busy" and not
+  // because any crash was traced to it.
+  //
+  // Second, it is far broader than it reads. World time pauses for the inventory, the map, the
+  // journal, crafting, the character screen, the cyberware screen, the stash, the phone and the
+  // radio. Several mods exist purely to stop menus pausing world time, which is how wide that
+  // net is. Any one of those, or any other mod leaving a pause reason registered, made this
+  // gate refuse during what the player experiences as ordinary gameplay, and a refusing gate
+  // costs the entire mod. That is the S1 failure, reproduced exactly.
+  //
+  // Nothing is lost by dropping it. Timed windows measure in sim time, which does not advance
+  // while paused, so they cannot drain behind a menu whether this gate opens or not. Modifier
+  // writes are guarded per entity by IsAttached. The ripperdoc chair, the one place where
+  // cyberware genuinely changes under the mod's feet, is caught by the workspot check below.
 
   // Photo mode, explicitly. It is usually also a paused state, but it moves the camera and
   // re-poses the player, so it is worth refusing on its own signal rather than by implication.
@@ -113,9 +132,6 @@ public func BYKStableReasonText(reason: Int32) -> String {
   if reason == BYKStableNoBlackboards() {
     return "blackboard system unavailable";
   }
-  if reason == BYKStablePaused() {
-    return "the game is paused";
-  }
   if reason == BYKStablePhotoMode() {
     return "photo mode is active";
   }
@@ -139,4 +155,17 @@ public func BYKWeaponSafe(weapon: wref<WeaponObject>) -> Bool {
     return false;
   }
   return weapon.IsAttached();
+}
+
+// Is world time paused right now?
+//
+// Reporting only. This is deliberately NOT part of the stability gate: see the long note in
+// BYKWorldStableReason for why gating on it cost the mod an entire release. It is here so the
+// diagnostic can say what the game reports without that answer being allowed to stop anything.
+public func BYKTimePaused(game: GameInstance) -> Bool {
+  let ts = GameInstance.GetTimeSystem(game);
+  if !IsDefined(ts) {
+    return false;
+  }
+  return ts.IsPausedState();
 }

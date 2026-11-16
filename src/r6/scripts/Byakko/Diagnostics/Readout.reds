@@ -28,7 +28,12 @@ public func BYKShowDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> Vo
 }
 
 func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
-  let out = s"Byakko \(ByakkoVersion())\n";
+  // Named for the mod, not for the default profile. The banner used to read "Byakko <version>",
+  // which is also the name of one of the seventeen profiles, so a player running Gwynbleidd on
+  // their Gorilla Arms read the first line of the readout as the mod telling them the Byakko
+  // profile was active. Byakko stays as the internal prefix everywhere in the source; what the
+  // player is shown is the mod.
+  let out = s"Iconic Arms \(ByakkoVersion())\n";
   if !BYKModSettingsPresent() {
     out += "Mod Settings not installed: running on defaults, no menu.\n";
   }
@@ -36,17 +41,33 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   if !BYKEnabled() {
     return out + "Mod is switched off in settings.";
   }
-  // Name the gate that refused, rather than just saying the world is mid-transition.
+
+  // The gate is REPORTED here and never allowed to end the readout.
   //
-  // The old version printed only the generic line, and when a gate misfired the only way to
-  // find out which one was to read the source. Saying which check said no makes that a
-  // keypress.
+  // This used to print one line naming the refusing check and then return. That is a diagnostic
+  // that refuses to diagnose, and it fails at the exact moment it is most needed: when a gate is
+  // misfiring, the thing a player needs is everything else on this screen, and what they got was
+  // three lines and a dead end.
+  //
+  // It has now bitten twice. S1 was UI_System.IsInMenu reading true during gameplay, which stood
+  // the whole mod down. Then a pause check did the same thing, because world time pauses for the
+  // inventory, the map, crafting, the cyberware screen and more, and any mod leaving a pause
+  // reason registered pins it true. Both times the readout's response was to go quiet.
+  //
+  // Everything below is safe to run regardless. The settled lookup checks the player and the
+  // weapon's IsAttached rather than the gate, the stats system is null-guarded, and nothing here
+  // writes anything.
   let reason = BYKWorldStableReason(game);
   if reason != BYKStableOk() {
-    out += s"Standing down: \(BYKStableReasonText(reason)).\n";
-    out += "If you are in normal gameplay and see this, that check is misfiring.\n";
-    out += "Please report it with this line.\n";
-    return out;
+    out += s"GATE: standing down, \(BYKStableReasonText(reason)).\n";
+    out += "Timed effects are held until this clears. Everything below is still live.\n";
+    out += "If you are in normal gameplay and see this, that check is misfiring. Please report this line.\n";
+  }
+  if BYKTimePaused(game) {
+    // Said plainly, and said as information. Pause used to be part of the gate and is not any
+    // more, because a paused game is not a streaming hazard and the check was costing players
+    // the entire mod.
+    out += "World time is paused. That is fine and does not stop anything.\n";
   }
   let stats = GameInstance.GetStatsSystem(game);
   let player = GetPlayer(game);
@@ -84,7 +105,25 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
     }
     return out;
   }
-  out += s"In hand: \(BYKArmKindName(BYKArmKind(weapon.GetItemID()))) - \(BYKDescribeItem(weapon.GetItemID()))\n";
+  let armKind = BYKArmKind(weapon.GetItemID());
+  out += s"In hand: \(BYKArmKindName(armKind)) - \(BYKDescribeItem(weapon.GetItemID()))\n";
+
+  // The active profile, named on the second line and not buried.
+  //
+  // A player reported setting their Gorilla Arms to Gwynbleidd, reading the banner, and coming
+  // away unsure which profile was live. The banner said "Byakko", which is both the mod's
+  // internal name and one of the seventeen profiles, and the profile section sat far enough down
+  // the readout to be missed. Two different things were called Byakko on one screen. The banner
+  // now names the mod, and the profile is stated immediately under what is in hand, so the two
+  // questions a player actually has are answered in the first three lines.
+  if IsDefined(sys) {
+    let topSlot = armKind == BYKArmMantis() ? sys.GetMantisSlot() : sys.GetGorillaSlot();
+    if IsDefined(topSlot) && IsDefined(topSlot.Profile()) {
+      out += s"Profile: \(topSlot.Profile().name)\n";
+    } else {
+      out += "Profile: none set for this arm\n";
+    }
+  }
 
   let sid = BYKWeaponStatsId(weapon);
   let speed = stats.GetStatValue(sid, gamedataStatType.AttackSpeed);
@@ -127,7 +166,7 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   // readout now says so, since an unexplained column of zeroes is exactly how someone concludes
   // a working mod is broken.
   out += "\nData layer (byakko-baseline.yaml):\n";
-  if BYKArmKind(weapon.GetItemID()) == BYKArmGorilla() {
+  if armKind == BYKArmGorilla() {
     out += "  Mantis Blades only. Zeroes below are expected on Gorilla Arms.\n";
   }
   // Range and CanWeaponIgnoreArmor, not EffectiveRange and ArmorPenetrationBonus. Those two are
@@ -148,8 +187,7 @@ func BYKBuildDiagnostics(game: GameInstance, sys: ref<ByakkoSystem>) -> String {
   // says what is not included. A player comparing against a wiki deserves to know which of
   // those they are looking at before they report a number as wrong.
   if IsDefined(sys) {
-    let kind = BYKArmKind(weapon.GetItemID());
-    let slot = kind == BYKArmMantis() ? sys.GetMantisSlot() : sys.GetGorillaSlot();
+    let slot = armKind == BYKArmMantis() ? sys.GetMantisSlot() : sys.GetGorillaSlot();
     out += "
 Profile: ";
     if IsDefined(slot) && IsDefined(slot.Profile()) {
@@ -264,7 +302,7 @@ Conditions:
     // Gorilla Arms carry CanWeaponInfinitlyCombo and CanWeaponDash in their own record, so the
     // combo flag is redundant on them. Said here rather than leaving a player to wonder why the
     // same setting feels different on the two arms.
-    if BYKArmKind(weapon.GetItemID()) == BYKArmGorilla() {
+    if armKind == BYKArmGorilla() {
       out += "  Gorilla Arms already combo infinitely, so the window only adds speed there.\n";
     }
   }

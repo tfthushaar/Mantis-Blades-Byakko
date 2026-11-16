@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.8.1
+
+**F8 reporting the game as paused during normal play is fixed, and fixed at the cause.**
+
+The stability gate refused whenever world time was paused. That check guarded against nothing.
+The hazards it exists for are loads, fast travel, time skips, the ripperdoc chair and cinematic
+scenes, and a paused game is the opposite of all of them: nothing is streaming and no entity is
+half-built. It was added by analogy with "the game is busy".
+
+It was also far wider than it looked. World time pauses for the inventory, the map, the journal,
+crafting, the character and cyberware screens, the stash, the phone and the radio. Any mod that
+leaves a pause reason registered pins it true permanently. With the gate refusing, every tick
+stood down and the mod did nothing while reporting a reason that sounded plausible.
+
+This is the same bug as 1.0.2, one signal over. That one was a menu check; this one was a pause
+check, and the file's own header warned against exactly this pattern before doing it anyway. The
+pause check is gone. Nothing is lost by removing it: timed windows measure in sim time, which
+does not advance while paused, so they cannot drain behind a menu either way, and the ripperdoc
+chair is still caught by the workspot check.
+
+**F8 can no longer be silenced by the gate.** It used to print one line naming the refusing check
+and stop. That is a diagnostic refusing to diagnose, and it failed at the one moment it was most
+needed. The gate is now reported as a line and the full readout always follows.
+
+**The readout said "Byakko" when it meant the mod.** Byakko is also one of the seventeen
+profiles, so a player who set their Gorilla Arms to Gwynbleidd read the first line as the mod
+telling them Byakko was active. Two different things were called Byakko on one screen. The banner
+now reads "Iconic Arms", the on-screen notifications match, and the active profile is named on
+the line directly under what is in hand so the two questions anyone actually has are answered in
+the first three lines.
+
+---
+
+
 ## 1.8.0
 
 **Gorilla Arms were missing half the mod, and the readout was denying they were supported at

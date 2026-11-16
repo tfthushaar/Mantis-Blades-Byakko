@@ -263,5 +263,5 @@ public func BYKRipAllProfiles(game: GameInstance) -> Void {
 
   BYKLog.Info(n"Rip", "---- end ----");
 
-  BYKShowMessage(game, "Byakko: wrote the full iconic dump and the resolver verdict to the log.", 6.0);
+  BYKShowMessage(game, "Iconic Arms: wrote the full iconic dump and the resolver verdict to the log.", 6.0);
 }

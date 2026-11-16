@@ -282,7 +282,7 @@ public class ByakkoSystem extends ScriptableSystem {
     this.ScheduleBurstTick();
 
     if IsDefined(settings) && settings.showBurstToast {
-      BYKShowMessage(game, s"Byakko: dash combo (\(this.m_dash.GetDashes()))", 1.2);
+      BYKShowMessage(game, s"Iconic Arms: dash combo (\(this.m_dash.GetDashes()))", 1.2);
     }
   }
 
@@ -353,7 +353,7 @@ public class ByakkoSystem extends ScriptableSystem {
     this.ScheduleBurstTick();
 
     if IsDefined(settings) && settings.showBurstToast {
-      BYKShowMessage(game, s"Byakko: blades hot (\(this.m_burst.GetKills()))", 1.5);
+      BYKShowMessage(game, s"Iconic Arms: arm hot (\(this.m_burst.GetKills()))", 1.5);
     }
   }
 
